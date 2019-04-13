@@ -1,18 +1,21 @@
 import $ivy.`io.circe::circe-core:0.11.1`
-import $ivy.`io.circe::circe-literal:0.11.1`
 import $ivy.`org.typelevel::cats-core:1.6.0`
 import $ivy.`org.typelevel::cats-mtl-core:0.4.0`
-import $file.qq
 import $plugin.$ivy.`org.spire-math::kind-projector:0.9.3`
 
-import cats._
-import cats.data.{ NonEmptyChain => Nec, _ }
-import cats.implicits._
+import cats.{ Id, Monad, Show }
+import cats.instances.string._
+import cats.instances.vector._
+import cats.syntax.eq._
+import cats.syntax.flatMap._
+import cats.syntax.foldable._
+import cats.syntax.show._
+import cats.data.{ Chain, ReaderWriterState => RWS, _ }
 import cats.mtl.implicits._
-import cats.mtl.lifting._
-import cats.mtl.{ ApplicativeLocal => AL, MonadChronicle => MC }
+import cats.mtl.{ ApplicativeLocal => AL, FunctorTell => FT }
 import io.circe.{Json, JsonNumber, JsonObject}
 import io.circe.Json._
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
 sealed trait JsonError
 
@@ -22,28 +25,28 @@ object JsonError {
 	final case class PredicateViolation[A, B](expected: A, got: B) extends JsonError
 	final case class KeyNotFound(key: String, obj: JsonObject) extends JsonError
 
-	def errorAt[F[_]](e: JsonError)(implicit MC: MC[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
-		L.reader(_.path) >>= (path => MC.dictate(Nec.one((path, e))))
+	def errorAt[F[_]](e: JsonError)(implicit MC: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
+		L.reader(_.path) >>= (path => FT.tell(Chain.one((path, e))))
 
   def mismatch0[A, B](a: A, b: B): JsonError = TypeMismatch(a, b)
 
-	def mismatch[F[_], A, B](a: A, b: B)(implicit MC: MC[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] = 
+	def mismatch[F[_], A, B](a: A, b: B)(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] = 
 		errorAt(mismatch0(a, b))
 
 	def predicateViolation0[A: Show, B: Show](a: A, b: B): JsonError = PredicateViolation(a.show, b.show)
 
-	def predicateViolation[F[_], A: Show, B: Show](a: A, b: B)(implicit MC: MC[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] = 
+	def predicateViolation[F[_], A: Show, B: Show](a: A, b: B)(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] = 
 		errorAt(predicateViolation0(a, b))
 
 	def keyNotFound0(key: String, obj: JsonObject): JsonError = KeyNotFound(key, obj)
 
-	def keyNotFound[F[_]](a: String, b: JsonObject)(implicit MC: MC[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] = 
+	def keyNotFound[F[_]](a: String, b: JsonObject)(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] = 
 		errorAt(keyNotFound0(a, b))
 }
 
 type ErrorAt = (Path, JsonError)
 
-type Errors = Nec[ErrorAt]
+type Errors = Chain[ErrorAt]
 
 sealed trait PathStep
 
@@ -57,24 +60,44 @@ type Path = List[PathStep]
 
 final case class Env(path: Path, json: Json)
 
-object Validator {
+object ValidatorF {
 	import JsonError._
 	import PathStep._
 
-	def nullValidator[F[_]](implicit MC: MC[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] = 
+  def trueValidatorF[F[_]](implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
+    L.reader(_.json) >>= {
+      case True => M.unit
+      case otherwise => mismatch(True, otherwise)
+    }
+
+  def falseValidatorF[F[_]](implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
+    L.reader(_.json) >>= {
+      case False => M.unit
+      case otherwise => mismatch(True, otherwise)
+    }
+
+	def nullValidatorF[F[_]](implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] = 
 		L.reader(_.json) >>= {
 			case Null => M.unit
 			case otherwise => mismatch(Null, otherwise)
 		}
 
-	def stringValidator[F[_]](s: String)(implicit MC: MC[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
+	def stringValidatorF[F[_]](s: String)(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
 		stringValidator0( s0 =>
 			M.whenA(s =!= s0)(predicateViolation(s, s0))
 		)
 
-	def stringValidator0[F[_]](f: String => F[Unit])(implicit MC: MC[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
+	def stringValidator0[F[_]](f: String => F[Unit])(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
 		L.reader(_.json) >>= ( json =>
 			json.asString.fold(mismatch("String", json))(f)
+		)
+
+  def numberValidatorF[F[_]](num: JsonNumber)(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
+    numberValidator0( num0 => M.whenA(num =!= num0)(predicateViolation(num.toString, num0.toString)))
+
+	def numberValidator0[F[_]](f: JsonNumber => F[Unit])(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
+		L.reader(_.json) >>= ( json =>
+			json.asNumber.fold(mismatch("Number", json))(f)
 		)
 
 	def atKeyValidator[F[_]](
@@ -84,7 +107,7 @@ object Validator {
 		obj: JsonObject
 	)(
 		implicit 
-		MC: MC[F, Errors], 
+		FT: FT[F, Errors], 
 		L: AL[F, Env],
 		M: Monad[F]
 	): F[Unit] = 
@@ -94,11 +117,11 @@ object Validator {
 			json => L.local { case Env(path, _) => Env(path :+ Key(key), json) }(validator)
 		)
 
-	def objectValidator[F[_]](
+	def objectValidatorF[F[_]](
 		objValidator: Vector[(String, F[Unit])]
 	)(
 		implicit
-		MC: MC[F, Errors],
+		FT: FT[F, Errors],
 		L: AL[F, Env],
 		M: Monad[F]
 	): F[Unit] = {
@@ -108,56 +131,42 @@ object Validator {
 
 		L.reader(_.json) >>= (json => json.asObject.fold(mismatch("Object", json))(objectValidator0))
 	}
+
+  def arrayValidatorF[F[_]](
+    arrayValidator: Vector[F[Unit]]
+  )(
+		implicit
+		FT: FT[F, Errors],
+		L: AL[F, Env],
+		M: Monad[F]
+	): F[Unit] = {
+    val arrayValidator0: Vector[Json] => F[Unit] = arrayValidator.zipWithIndex.zip(_).traverse_{
+      case ((validator, index), json) => L.local { case Env(path, _) => Env(path :+ Index(index), json) }(validator)
+    }
+
+    L.reader(_.json) >>= ( json => json.asArray.fold(mismatch("Array", json))(arrayValidator0) )
+  }
 }
 
-object Main {
-	import Validator._
+type Validator0[A] = RWS[Env, Errors, Unit, A]
+type Validator = Validator0[Unit]
 
+object Validator {
+  import ValidatorF._
 
-	// This is sooooooo painful
-	// Wish there was a better way	
-	lazy implicit val ev0: MC[Validator, Errors] = chronicleIorT[Reader[Env, ?], Errors]
-	lazy implicit val ev1: AL[Validator, Env] = localInd[Validator, Reader[Env, ?], Env]
-	lazy implicit val ev2: MonadError[Validator, Errors] = IorT.catsDataMonadErrorForIorT[Reader[Env, ?], Errors]
+  def trueValidator: Validator = trueValidatorF[Validator0]
 
-	// It does a little bit less stuff than MonadTrans but it is much more work...
-	// http://hackage.haskell.org/package/transformers-0.5.6.2/docs/Control-Monad-Trans-Class.html
-	lazy implicit val ev3: MonadLayer[Validator, Reader[Env, ?]] = new MonadLayer[Validator, Reader[Env, ?]] { 
-		val innerInstance: Monad[Reader[Env, ?]] = Monad[Reader[Env, ?]]	
-		val outerInstance: Monad[Validator] = Monad[Validator]
+  def falseValidator: Validator = falseValidatorF[Validator0]
 
-		def layer[A](inner: Reader[Env, A]): Validator[A] = IorT.liftF[Reader[Env, ?], Errors, A](inner)
-		def layerImapK[A](
-			ma: Validator[A]
-		)(
-			forward: Reader[Env, ?] ~> Reader[Env, ?],
-			backward: Reader[Env, ?] ~> Reader[Env, ?]
-		): Validator[A] = IorT[Reader[Env, ?], Errors, A](backward(forward(ma.value)))
-	}
+	def objectValidator(objValidator: Vector[(String, Validator)]): Validator = 
+    objectValidatorF[Validator0](objValidator)
 
-	type Validator[A] = IorT[Reader[Env, ?], Errors, A]
+	def stringValidator(s: String): Validator = stringValidatorF[Validator0](s)
 
-  val json = Json.obj(
-		"a" -> Json.fromString("1234"),
-		"b" -> Json.obj(
-			"c" -> Json.fromString("4321")
-		),
-		"d" -> Json.Null
-	)
+  def nullValidator: Validator = nullValidatorF[Validator0]
 
-	val validator: Validator[Unit] = objectValidator[Validator](
-		Vector(
-			"a" -> stringValidator("1234"),
-			"b" -> objectValidator(
-				Vector(
-					"c" -> stringValidator("4311")
-				)
-			),
-			"d" -> stringValidator("null")
-		)
-	)
-  
-	println(validator.value(Env(Nil, json)))
+  def numberValidator(num: JsonNumber): Validator = numberValidatorF[Validator0](num)
+
+  def arrayValidator(arrayValidator: Vector[Validator]): Validator = arrayValidatorF[Validator0](arrayValidator)
 }
 
-Main
