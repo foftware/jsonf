@@ -6,7 +6,6 @@ import cats.mtl.implicits._
 import io.circe.validator.internal.Validator._
 
 package object validator {
-  type ErrorAt       = (Path, JsonError)
   type Errors        = Chain[ErrorAt]
   type Path          = List[PathStep]
   type Validator0[A] = RWS[Env, Errors, Unit, A]
@@ -28,4 +27,7 @@ package object validator {
 
   def arrayValidator(arrayValidator: Vector[Validator]): Validator =
     arrayValidatorF[Validator0](arrayValidator)
+
+  def run(validator: Validator, json: Json): Chain[ErrorAt] =
+    validator.runL(Env(json), ()).value
 }

@@ -22,4 +22,6 @@ object Dependencies {
   )
 
   lazy val literalDependencies = Seq(jawnParser)
+
+  lazy val scalatestValidatorDependencies = Seq(scalaTest)
 }

@@ -15,12 +15,19 @@ lazy val root = (project in file("."))
 				|import io.circe.validator._
 				|import io.circe.validator.literal._
 				""".stripMargin
-  ).dependsOn(literal, validator)
+  ).dependsOn(literal, `scalatest-validator`, validator)
 
 lazy val literal = (project in file("./modules/literal"))
   .settings(
     libraryDependencies := literalDependencies,
     name := "circe-validator-literal",
+    scalacOptions := compilerFlags
+  ).dependsOn(validator)
+
+lazy val `scalatest-validator` = (project in file("./modules/scalatest-circe-validator/"))
+  .settings(
+    libraryDependencies := scalatestValidatorDependencies,
+    name := "scalatest-circe-validator",
     scalacOptions := compilerFlags
   ).dependsOn(validator)
 
@@ -30,5 +37,3 @@ lazy val validator = (project in file("./modules/validator"))
     name := "circe-validator",
     scalacOptions := compilerFlags
   )
-
-// See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.

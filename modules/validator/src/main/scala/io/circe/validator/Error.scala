@@ -7,6 +7,8 @@ import cats.data.Chain
 import cats.mtl.{ApplicativeLocal => AL, FunctorTell => FT}
 import io.circe.JsonObject
 
+final case class ErrorAt(at: Path, error: JsonError)
+
 sealed trait JsonError
 
 object JsonError {
@@ -19,7 +21,7 @@ object JsonError {
   def errorAt[F[_]](
       e: JsonError
   )(implicit MC: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
-    L.reader(_.path) >>= (path => FT.tell(Chain.one((path, e))))
+    L.reader(_.path) >>= (path => FT.tell(Chain.one(ErrorAt(path, e))))
 
   def mismatch0[A, B](a: A, b: B): JsonError = TypeMismatch(a, b)
 

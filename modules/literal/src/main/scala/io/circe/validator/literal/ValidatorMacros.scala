@@ -73,8 +73,6 @@ class ValidatorMacros(val c: blackbox.Context) {
           }
         } + stringParts.last
 
-        println(jsonString)
-
         c.Expr[Validator](parse(jsonString, holes) fold ({ e =>
           val sw = new StringWriter
           e.printStackTrace(new PrintWriter(sw))
