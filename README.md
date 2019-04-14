@@ -1,13 +1,10 @@
-# JsonF stands for JsonFunctor 
+# jsont stands for Json Template
 
-## Run with Ammonite:
-
-```bash
-amm --watch macroTest.sc
-```
+## Run
 
 ```bash
-amm --watch jsonf.sc
+$ sbt console
+> jsont"""false"""
 ```
 
 ## See this
