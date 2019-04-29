@@ -18,6 +18,8 @@ object JsonValidatorPrettifier {
       Json.obj("kind" -> "key not found".asJson, "reason" -> s"$key in $obj".asJson )
     case TypeMismatch(expected, got) =>
       Json.obj( "kind" -> "type mismatch".asJson, "reason" -> s"expected: $expected, got: $got".asJson )
+    //FIXME
+    case _ => ???
   }
 
   implicit val errorAtEncoder: Encoder[ErrorAt] = Encoder.instance ( e =>

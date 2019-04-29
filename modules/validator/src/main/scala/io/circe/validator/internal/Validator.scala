@@ -9,79 +9,65 @@ import cats.syntax.foldable._
 import cats.mtl.{ApplicativeLocal => AL, FunctorTell => FT}
 import io.circe.{Json, JsonNumber, JsonObject}
 import io.circe.Json.{False, Null, True}
-
 import io.circe.validator.{Env, Errors}
-import io.circe.validator.JsonError.{mismatch, keyNotFound, predicateViolation}
+import io.circe.validator.JsonError.{keyNotFound, mismatch, predicateViolation}
 import io.circe.validator.PathStep.{Index, Key}
 
-object Validator {
-  def trueValidatorF[F[_]](
-      implicit FT: FT[F, Errors],
-      L: AL[F, Env],
-      M: Monad[F]
-  ): F[Unit] =
+class Validator[F[_]](
+   implicit
+   FT: FT[F, Errors],
+   L: AL[F, Env],
+   M: Monad[F]
+) {
+//
+//  def jsonValidatorF[F[_]](
+//                            validator: Json => F[Unit]
+//                )(
+//                ): F[Unit] = {
+//    L.reader(_.json) >>= validator
+//  }
+  def trueValidatorF(): F[Unit] =
     L.reader(_.json) >>= {
       case True      => M.unit
       case otherwise => mismatch(True, otherwise)
     }
 
-  def falseValidatorF[F[_]](
-      implicit FT: FT[F, Errors],
-      L: AL[F, Env],
-      M: Monad[F]
-  ): F[Unit] =
+  def falseValidatorF(): F[Unit] =
     L.reader(_.json) >>= {
       case False     => M.unit
       case otherwise => mismatch(True, otherwise)
     }
 
-  def nullValidatorF[F[_]](
-      implicit FT: FT[F, Errors],
-      L: AL[F, Env],
-      M: Monad[F]
-  ): F[Unit] =
+  def nullValidatorF(): F[Unit] =
     L.reader(_.json) >>= {
       case Null      => M.unit
       case otherwise => mismatch(Null, otherwise)
     }
 
-  def stringValidatorF[F[_]](
-      s: String
-  )(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
+  def stringValidatorF(s: String): F[Unit] =
     stringValidator0(s0 => M.whenA(s =!= s0)(predicateViolation(s, s0)))
 
-  def stringValidator0[F[_]](
-      f: String => F[Unit]
-  )(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
+  def stringValidator0(f: String => F[Unit]): F[Unit] =
     L.reader(_.json) >>= (
         json => json.asString.fold(mismatch("String", json))(f)
     )
 
-  def numberValidatorF[F[_]](
-      num: JsonNumber
-  )(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
+  def numberValidatorF(num: JsonNumber): F[Unit] =
     numberValidator0(
       num0 =>
         M.whenA(num =!= num0)(predicateViolation(num.toString, num0.toString))
     )
 
-  def numberValidator0[F[_]](
-      f: JsonNumber => F[Unit]
-  )(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
+  def numberValidator0(f: JsonNumber => F[Unit]): F[Unit] =
     L.reader(_.json) >>= (
         json => json.asNumber.fold(mismatch("Number", json))(f)
     )
 
-  def atKeyValidator[F[_]](
+  def atKeyValidator(
       key: String,
       validator: F[Unit]
   )(
       obj: JsonObject
-  )(
-      implicit
-      FT: FT[F, Errors],
-      L: AL[F, Env],
-      M: Monad[F]
   ): F[Unit] =
     obj(key).fold(
       keyNotFound(key, obj)
@@ -90,13 +76,8 @@ object Validator {
         L.local { case Env(path, _) => Env(path :+ Key(key), json) }(validator)
     )
 
-  def objectValidatorF[F[_]](
+  def objectValidatorF(
       objValidator: Vector[(String, F[Unit])]
-  )(
-      implicit
-      FT: FT[F, Errors],
-      L: AL[F, Env],
-      M: Monad[F]
   ): F[Unit] = {
     val objectValidator0: JsonObject => F[Unit] = obj =>
       objValidator.traverse_ {
@@ -108,13 +89,8 @@ object Validator {
     )
   }
 
-  def arrayValidatorF[F[_]](
+  def arrayValidatorF(
       arrayValidator: Vector[F[Unit]]
-  )(
-      implicit
-      FT: FT[F, Errors],
-      L: AL[F, Env],
-      M: Monad[F]
   ): F[Unit] = {
     val arrayValidator0: Vector[Json] => F[Unit] =
       arrayValidator.zipWithIndex.zip(_).traverse_ {
@@ -127,5 +103,25 @@ object Validator {
     L.reader(_.json) >>= (
         json => json.asArray.fold(mismatch("Array", json))(arrayValidator0)
     )
+  }
+//
+//  def wholeArrayValidatorF[F[_]](
+//     arrayValidator: Vector[Json] => Boolean
+//   )(
+//     implicit
+//     FT: FT[F, Errors],
+//     L: AL[F, Env],
+//     M: Monad[F]
+//   ): F[Unit] = {
+//    L.reader(_.json) >>= (
+//      json => json.asArray.fold(mismatch("Array", json))(arrayValidator)
+//    )
+//  }
+}
+
+object Validator {
+
+  object Syntax {
+    def apply[F[_]](implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): Validator[F] = new Validator[F]()(FT, L, M)
   }
 }

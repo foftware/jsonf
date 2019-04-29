@@ -3,7 +3,6 @@ package io.circe
 import cats.data.{Chain, ReaderWriterState => RWS}
 import cats.mtl.implicits._
 
-import io.circe.validator.internal.Validator._
 
 package object validator {
   type Errors        = Chain[ErrorAt]
@@ -11,22 +10,26 @@ package object validator {
   type Validator0[A] = RWS[Env, Errors, Unit, A]
   type Validator     = Validator0[Unit]
 
-  def trueValidator: Validator = trueValidatorF[Validator0]
 
-  def falseValidator: Validator = falseValidatorF[Validator0]
+  val x = new io.circe.validator.internal.Validator[Validator0]()
+  import x._
+
+  def trueValidator: Validator = trueValidatorF
+
+  def falseValidator: Validator = falseValidatorF
 
   def objectValidator(objValidator: Vector[(String, Validator)]): Validator =
-    objectValidatorF[Validator0](objValidator)
+    objectValidatorF(objValidator)
 
-  def stringValidator(s: String): Validator = stringValidatorF[Validator0](s)
+  def stringValidator(s: String): Validator = stringValidatorF(s)
 
-  def nullValidator: Validator = nullValidatorF[Validator0]
+  def nullValidator: Validator = nullValidatorF
 
   def numberValidator(num: JsonNumber): Validator =
-    numberValidatorF[Validator0](num)
+    numberValidatorF(num)
 
   def arrayValidator(arrayValidator: Vector[Validator]): Validator =
-    arrayValidatorF[Validator0](arrayValidator)
+    arrayValidatorF(arrayValidator)
 
   def run(validator: Validator, json: Json): Chain[ErrorAt] =
     validator.runL(Env(json), ()).value
