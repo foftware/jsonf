@@ -14,8 +14,8 @@ sealed trait JsonError
 object JsonError {
 
   final case class TypeMismatch[A, B](expected: A, got: B) extends JsonError
-  final case class PredicateViolation[A, B](expected: A, got: B)
-      extends JsonError
+  final case class PredicateViolation[A, B](expected: A, got: B) extends JsonError
+  final case class ArrayPredicateViolation[A, B](message: String) extends JsonError
   final case class KeyNotFound(key: String, obj: JsonObject) extends JsonError
 
   def errorAt[F[_]](
