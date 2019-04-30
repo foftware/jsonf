@@ -2,22 +2,17 @@ package io.circe.validator.internal
 
 import cats.Monad
 import cats.data.EitherT
-/*
 import cats.instances.string._
 import cats.instances.vector._
-import cats.syntax.either._
-import cats.instances.either._
+import cats.mtl.{ApplicativeLocal => AL, FunctorTell => FT}
 import cats.syntax.eq._
 import cats.syntax.flatMap._
 import cats.syntax.foldable._
-*/
-import cats.implicits._
-import cats.mtl.{ApplicativeLocal => AL, FunctorTell => FT}
-import io.circe.{Json, JsonNumber, JsonObject}
 import io.circe.Json.{False, Null, True}
-import io.circe.validator.{Env, Errors}
 import io.circe.validator.JsonError.{keyNotFound, mismatch, predicateViolation}
 import io.circe.validator.PathStep.{Index, Key}
+import io.circe.validator.{Env, Errors}
+import io.circe.{Json, JsonNumber, JsonObject}
 
 /** Generic validator
   *
