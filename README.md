@@ -5,6 +5,13 @@
 ```bash
 $ sbt console
 > jsont"""false"""
+res0: io.circe.validator.Validator = cats.data.IndexedReaderWriterStateT@732368d8
+
+> run(jsont"""null""", Json.True)
+res1: cats.data.Chain[io.circe.validator.ErrorAt] = Chain(ErrorAt(List(),TypeMismatch(null,true)))
+
+> run(jsont"""true""", Json.True)
+res2: cats.data.Chain[io.circe.validator.ErrorAt] = Chain()
 ```
 
 ## See this
