@@ -13,7 +13,7 @@ import io.circe.validator.{Env, Errors}
 import io.circe.validator.JsonError.{keyNotFound, mismatch, predicateViolation}
 import io.circe.validator.PathStep.{Index, Key}
 
-class ValidatorF[F[_]](
+abstract class ValidatorF[F[_]](
    implicit
    FT: FT[F, Errors],
    L: AL[F, Env],

@@ -18,7 +18,8 @@ object Dependencies {
   lazy val validatorDependencies = Seq(
     cats,
     catsMtl,
-    circeCore
+    circeCore,
+    compilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0")
   )
 
   lazy val literalDependencies = Seq(jawnParser)
