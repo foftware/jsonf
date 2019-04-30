@@ -13,7 +13,7 @@ import io.circe.validator.{Env, Errors}
 import io.circe.validator.JsonError.{keyNotFound, mismatch, predicateViolation}
 import io.circe.validator.PathStep.{Index, Key}
 
-class Validator[F[_]](
+class ValidatorF[F[_]](
    implicit
    FT: FT[F, Errors],
    L: AL[F, Env],
@@ -26,25 +26,25 @@ class Validator[F[_]](
 //                ): F[Unit] = {
 //    L.reader(_.json) >>= validator
 //  }
-  def trueValidatorF(): F[Unit] =
+  def trueValidator(): F[Unit] =
     L.reader(_.json) >>= {
       case True      => M.unit
       case otherwise => mismatch(True, otherwise)
     }
 
-  def falseValidatorF(): F[Unit] =
+  def falseValidator(): F[Unit] =
     L.reader(_.json) >>= {
       case False     => M.unit
       case otherwise => mismatch(True, otherwise)
     }
 
-  def nullValidatorF(): F[Unit] =
+  def nullValidator(): F[Unit] =
     L.reader(_.json) >>= {
       case Null      => M.unit
       case otherwise => mismatch(Null, otherwise)
     }
 
-  def stringValidatorF(s: String): F[Unit] =
+  def stringValidator(s: String): F[Unit] =
     stringValidator0(s0 => M.whenA(s =!= s0)(predicateViolation(s, s0)))
 
   def stringValidator0(f: String => F[Unit]): F[Unit] =
@@ -52,7 +52,7 @@ class Validator[F[_]](
         json => json.asString.fold(mismatch("String", json))(f)
     )
 
-  def numberValidatorF(num: JsonNumber): F[Unit] =
+  def numberValidator(num: JsonNumber): F[Unit] =
     numberValidator0(
       num0 =>
         M.whenA(num =!= num0)(predicateViolation(num.toString, num0.toString))
@@ -76,7 +76,7 @@ class Validator[F[_]](
         L.local { case Env(path, _) => Env(path :+ Key(key), json) }(validator)
     )
 
-  def objectValidatorF(
+  def objectValidator(
       objValidator: Vector[(String, F[Unit])]
   ): F[Unit] = {
     val objectValidator0: JsonObject => F[Unit] = obj =>
@@ -89,7 +89,7 @@ class Validator[F[_]](
     )
   }
 
-  def arrayValidatorF(
+  def arrayValidator(
       arrayValidator: Vector[F[Unit]]
   ): F[Unit] = {
     val arrayValidator0: Vector[Json] => F[Unit] =
@@ -117,11 +117,4 @@ class Validator[F[_]](
 //      json => json.asArray.fold(mismatch("Array", json))(arrayValidator)
 //    )
 //  }
-}
-
-object Validator {
-
-  object Syntax {
-    def apply[F[_]](implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): Validator[F] = new Validator[F]()(FT, L, M)
-  }
 }
