@@ -1,3 +1,7 @@
+import sbt._
+import Keys._
+import wartremover.Warts
+import wartremover.wartremoverErrors
 
 object CommonSettings {
   lazy val compilerFlags = Seq(
@@ -46,5 +50,12 @@ object CommonSettings {
     "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
     "-Ywarn-unused:privates",            // Warn if a private member is unused.
     "-Ywarn-value-discard"               // Warn when non-Unit expression results are unused.
-)
+  )
+
+  lazy val warts = Warts.unsafe
+
+  lazy val commonSettings = Seq(
+    scalacOptions := compilerFlags,
+    wartremoverErrors := warts
+  )
 }
