@@ -1,5 +1,7 @@
 # jsont stands for Json Template
 
+[![Build Status](https://travis-ci.com/foftware/jsont.svg?branch=master)](https://travis-ci.com/foftware/jsont)
+
 ## Run
 
 ```bash
@@ -14,9 +16,9 @@ res1: cats.data.Chain[io.circe.validator.ErrorAt] = Chain(ErrorAt(List(),TypeMis
 res2: cats.data.Chain[io.circe.validator.ErrorAt] = Chain()
 ```
 
-## See this
+## Resouces
 
-### JsonFunctor related stuff
+### Template related stuff
 
 * http://hackage.haskell.org/package/transformers-0.5.6.2/docs/Control-Monad-Trans-Class.html
 * https://typelevel.org/cats-mtl/lifting-classes.html
