@@ -28,21 +28,21 @@ class ValidatorMacros(val c: blackbox.Context) {
         } else {
           q"JsonNumber.fromDecimalStringUnsafe(${s.toString})"
         }
-        q"_root_.io.circe.validator.numberValidator($number)"
+        q"_root_.io.circe.validator.eqNumberValidator($number)"
       }
       def jstring(s: CharSequence): Tree = {
         val string = s.toString
         holes
           .find(_.hole == string)
           .fold(
-            q"_root_.io.circe.validator.stringValidator($string)"
+            q"_root_.io.circe.validator.eqStringValidator($string)"
           )(_.value)
       }
       def jarray(vs: List[Tree]): Tree =
         q"_root_.io.circe.validator.arrayValidator(${vs.toVector})"
 
       def jobject(vs: Map[String, Tree]): Tree =
-        q"_root_.io.circe.validator.objValidator(${vs.toVector})"
+        q"_root_.io.circe.validator.objectValidator(${vs.toVector})"
     }
 
   final def parse(json: String, holes: Seq[Hole]): Either[Throwable, Tree] = {

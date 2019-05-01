@@ -29,7 +29,6 @@ import io.circe.{Json, JsonNumber, JsonObject}
   * @groupdesc object "Object validators"
   * @groupdesc other "Singleton and other validators"
   * @groupdesc lifting "Utility functions for lifting into 'ValidatorF'"
-  * @
   */
 abstract class ValidatorF[F[_]](
    implicit
@@ -83,7 +82,7 @@ abstract class ValidatorF[F[_]](
   // {{{ String ----------------------------------------------------------------
 
   /** @group string */
-  def stringValidator(s: String): F[Unit] =
+  def eqStringValidator(s: String): F[Unit] =
     withString(s0 => M.whenA(s =!= s0){
       val reason = s"String: $s does not match expected $s0"
       predicateViolation(reason)
@@ -180,4 +179,10 @@ abstract class ValidatorF[F[_]](
     (withNumber _) compose liftEither
 
   // }}} Lifting ---------------------------------------------------------------
+
+  def s0(predicate: sourcecode.Text[String => Boolean]): F[Unit] =
+    liftString(s0 => Either.cond(predicate.value(s0), (), predicate.source))
+
+  // Doesn't work though yet
+  def s(predicate: String => Boolean): F[Unit] = s0(predicate)
 }
