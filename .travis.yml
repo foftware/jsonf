@@ -1,3 +1,7 @@
 language: scala
 scala:
-   - 2.12.8
+  - 2.12.8
+script:
+  - sbt lint
+  - sbt compile
+  - sbt test
