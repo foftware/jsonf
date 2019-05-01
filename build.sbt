@@ -3,8 +3,8 @@ import CommonSettings._
 
 ThisBuild / scalaVersion     := "2.12.8"
 ThisBuild / version          := "0.1.0-SNAPSHOT"
-ThisBuild / organization     := "com.example"
-ThisBuild / organizationName := "example"
+ThisBuild / organization     := "org.foftware"
+ThisBuild / organizationName := "foftware"
 
 lazy val root = (project in file("."))
   .settings(
@@ -14,6 +14,7 @@ lazy val root = (project in file("."))
         |import io.circe.syntax._
 				|import io.circe.validator._
 				|import io.circe.validator.literal._
+				|import io.circe.validator.internal._
 				""".stripMargin
   ).dependsOn(literal, `scalatest-validator`, validator)
 
