@@ -31,10 +31,10 @@ import io.circe.{Json, JsonNumber, JsonObject}
   * @groupdesc lifting "Utility functions for lifting into 'ValidatorF'"
   */
 abstract class ValidatorF[F[_]](
-   implicit
-   FT: FT[F, Errors],
-   L: AL[F, Env],
-   M: Monad[F]
+    implicit
+    FT: FT[F, Errors],
+    L: AL[F, Env],
+    M: Monad[F]
 ) {
 
   // {{{ Array -----------------------------------------------------------------
@@ -44,7 +44,7 @@ abstract class ValidatorF[F[_]](
       onArray: Vector[Json] => F[Unit]
   ): F[Unit] =
     L.reader(_.json) >>= (
-      json => json.asArray.fold(mismatch("Array", json))(onArray)
+        json => json.asArray.fold(mismatch("Array", json))(onArray)
     )
 
   /** @group array */
@@ -67,10 +67,13 @@ abstract class ValidatorF[F[_]](
 
   /** @group number */
   def eqNumberValidator(num: JsonNumber): F[Unit] =
-    withNumber(num0 => M.whenA(num =!= num0){
-      lazy val reason = s"Number: $num does not match expected $num0"
-      predicateViolation(reason)
-    })
+    withNumber(
+      num0 =>
+        M.whenA(num =!= num0) {
+          lazy val reason = s"Number: $num does not match expected $num0"
+          predicateViolation(reason)
+        }
+    )
 
   /** @group number */
   def withNumber(f: JsonNumber => F[Unit]): F[Unit] =
@@ -83,16 +86,27 @@ abstract class ValidatorF[F[_]](
 
   /** @group string */
   def eqStringValidator(s: String): F[Unit] =
-    withString(s0 => M.whenA(s =!= s0){
-      val reason = s"String: $s does not match expected $s0"
-      predicateViolation(reason)
-    })
+    withString(
+      s0 =>
+        M.whenA(s =!= s0) {
+          val reason = s"String: $s does not match expected $s0"
+          predicateViolation(reason)
+        }
+    )
 
   /** @group string */
   def withString(f: String => F[Unit]): F[Unit] =
     L.reader(_.json) >>= (
         json => json.asString.fold(mismatch("String", json))(f)
     )
+
+  /** @group string */
+  def satisfies(predicate: String => Boolean): F[Unit] = {
+    def mkErrorMsg(s: String): String =
+      s"String value $s does not satisfy the given predicate."
+
+    withString(liftBoolean(predicate, mkErrorMsg))
+  }
 
   // }}} String ----------------------------------------------------------------
   // {{{ Object ----------------------------------------------------------------
@@ -155,34 +169,43 @@ abstract class ValidatorF[F[_]](
 
   // }}} Other -----------------------------------------------------------------
   // {{{ Lifting ---------------------------------------------------------------
+  // {{{{{{ Either -------------------------------------------------------------
 
-  /** group other */
+  /** group lifting */
   def liftEither[A](
-      validator: A => Either[String, Unit],
-  ): A => F[Unit] = a =>
-    EitherT.fromEither[F](validator(a)).valueOrF(predicateViolation(_))
+      validator: A => Either[String, Unit]
+  ): A => F[Unit] =
+    a => EitherT.fromEither[F](validator(a)).valueOrF(predicateViolation(_))
 
-  /** group other */
+  /** group lifting */
   val liftJsonEither: (Json => Either[String, Unit]) => F[Unit] =
     (withJson _) compose liftEither
 
-  /** group other */
+  /** group liftin */
   def liftArrayEither: (Vector[Json] => Either[String, Unit]) => F[Unit] =
     (withArray _) compose liftEither
 
-  /** group other */
+  /** group lifting */
   def liftString: (String => Either[String, Unit]) => F[Unit] =
     (withString _) compose liftEither
 
-  /** group other */
+  /** group lifting */
   def liftNumber: (JsonNumber => Either[String, Unit]) => F[Unit] =
     (withNumber _) compose liftEither
 
+  // }}}}}} Either -------------------------------------------------------------
+  // {{{{{{ Boolean ------------------------------------------------------------
+
+  def liftBooleanEither[A](
+      predicate: A => Boolean,
+      mkMsg: A => String
+  ): A => Either[String, Unit] = a => Either.cond(predicate(a), (), mkMsg(a))
+
+  def liftBoolean[A](
+      predicate: A => Boolean,
+      mkMsg: A => String
+  ): A => F[Unit] = liftEither(liftBooleanEither(predicate, mkMsg))
+
+  // {{{{{{ Boolean ------------------------------------------------------------
   // }}} Lifting ---------------------------------------------------------------
-
-  def s0(predicate: sourcecode.Text[String => Boolean]): F[Unit] =
-    liftString(s0 => Either.cond(predicate.value(s0), (), predicate.source))
-
-  // Doesn't work though yet
-  def s(predicate: String => Boolean): F[Unit] = s0(predicate)
 }

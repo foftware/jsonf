@@ -4,7 +4,10 @@ import io.circe.Json
 import io.circe.validator.trueValidator
 // import org.scalatest.matchers.MatchResult
 
-class JsonValidatorMatchersSpec extends Matchers with JsonValidatorMatchers with WordSpecLike {
+class JsonValidatorMatchersSpec
+    extends Matchers
+    with JsonValidatorMatchers
+    with WordSpecLike {
 
   "JsonValidatorMatchers" should {
     "succeed" when {

@@ -6,7 +6,7 @@ object Version {
   lazy val circe = "0.11.1"
   lazy val jawn = "0.14.1"
   lazy val scalaTest = "3.0.5"
-  lazy val sourceCode = "0.1.5"
+  lazy val scalaParserCombinators = "1.1.2"
 }
 
 object Dependencies {
@@ -14,15 +14,15 @@ object Dependencies {
   lazy val catsMtl = "org.typelevel" %% "cats-mtl-core" % Version.catsMtl
   lazy val circeCore = "io.circe" %% "circe-core" % Version.circe
   lazy val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest
+  lazy val scalaParserCombinators = "org.scala-lang.modules" %% "scala-parser-combinators" % Version.scalaParserCombinators
   lazy val jawnParser = "org.typelevel" %% "jawn-parser" % Version.jawn
-  lazy val sourceCode = "com.lihaoyi" %% "sourcecode" % Version.sourceCode
 
   lazy val validatorDependencies = Seq(
     cats,
     catsMtl,
     circeCore,
     compilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
-    sourceCode
+    scalaParserCombinators
   )
 
   lazy val literalDependencies = Seq(jawnParser)
