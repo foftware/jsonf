@@ -10,7 +10,6 @@ import cats.syntax.flatMap._
 import cats.syntax.foldable._
 import io.circe.Json.{False, Null, True}
 import io.circe.validator.JsonError.{keyNotFound, mismatch, predicateViolation}
-import io.circe.validator.PathStep.{Index, Key}
 import io.circe.validator.{Env, Errors}
 import io.circe.{Json, JsonNumber, JsonObject}
 
@@ -52,11 +51,9 @@ abstract class ValidatorF[F[_]](
       arrayValidator: Vector[F[Unit]]
   ): F[Unit] = {
     val arrayValidator0: Vector[Json] => F[Unit] =
-      arrayValidator.zipWithIndex.zip(_).traverse_ {
+      arrayValidator.zipWithIndex.zip(_) traverse_ {
         case ((validator, index), json) =>
-          L.local { case Env(path, _) => Env(path :+ Index(index), json) }(
-            validator
-          )
+          L.local(Env.index(index, json))(validator)
       }
 
     withArray(arrayValidator0)
@@ -121,8 +118,7 @@ abstract class ValidatorF[F[_]](
     obj(key).fold(
       keyNotFound(key, obj)
     )(
-      json =>
-        L.local { case Env(path, _) => Env(path :+ Key(key), json) }(validator)
+      json => L.local(Env.key(key, json))(validator)
     )
 
   /** @group object */
