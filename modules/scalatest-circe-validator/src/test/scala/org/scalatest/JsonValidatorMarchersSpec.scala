@@ -22,8 +22,6 @@ class JsonValidatorMatchersSpec
       "validation did not pass" in {
         val actual = passValidation(trueValidator)(Json.False)
 
-        println(actual)
-
         actual.matches shouldBe false
       }
     }

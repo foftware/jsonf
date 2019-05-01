@@ -153,7 +153,7 @@ abstract class ValidatorF[F[_]](
   def falseValidator(): F[Unit] =
     L.reader(_.json) >>= {
       case False     => M.unit
-      case otherwise => mismatch(True, otherwise)
+      case otherwise => mismatch(False, otherwise)
     }
 
   /** group other */
