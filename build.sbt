@@ -17,6 +17,7 @@ lazy val root = (project in file("."))
 				|import io.circe.validator.internal._
 				""".stripMargin
   ).dependsOn(literal, `scalatest-validator`, validator)
+  .aggregate(literal, `scalatest-validator`, validator)
 
 lazy val literal = (project in file("./modules/literal"))
   .settings(
