@@ -2,12 +2,14 @@ package io.circe.validator.internal
 
 import cats.Monad
 import cats.data.EitherT
-import cats.instances.string._
-import cats.instances.vector._
+// import cats.instances.string._
+// import cats.instances.vector._
 import cats.mtl.{ApplicativeLocal => AL, FunctorTell => FT}
-import cats.syntax.eq._
-import cats.syntax.flatMap._
-import cats.syntax.foldable._
+// import cats.syntax.apply._
+// import cats.syntax.eq._
+// import cats.syntax.flatMap._
+// import cats.syntax.foldable._
+import cats.implicits._
 import io.circe.Json.{False, Null, True}
 import io.circe.validator.JsonError.{keyNotFound, mismatch, predicateViolation}
 import io.circe.validator.{Env, Errors}
@@ -48,15 +50,23 @@ abstract class ValidatorF[F[_]](
 
   /** @group array */
   def arrayValidator(
-      arrayValidator: Vector[F[Unit]]
+      validators: Vector[F[Unit]]
   ): F[Unit] = {
+    val tooFewElements: Int => F[Unit] = l =>
+      predicateViolation(
+        s"Array has less elements (${l}) than expected (${validators.length})"
+      )
+
+    val elemNumCheck: Int => F[Unit] = l =>
+      M.whenA(validators.size > l)(tooFewElements(l))
+
     val arrayValidator0: Vector[Json] => F[Unit] =
-      arrayValidator.zipWithIndex.zip(_) traverse_ {
+      validators.zipWithIndex.zip(_) traverse_ {
         case ((validator, index), json) =>
           L.local(Env.index(index, json))(validator)
       }
 
-    withArray(arrayValidator0)
+    withArray(arr => elemNumCheck(arr.size) *> arrayValidator0(arr))
   }
 
   // }}} Array -----------------------------------------------------------------
