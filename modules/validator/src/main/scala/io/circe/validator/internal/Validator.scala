@@ -57,7 +57,7 @@ abstract class ValidatorF[F[_]](
         s"Array has less elements (${l}) than expected (${validators.length})"
       )
 
-    val elemNumCheck: Int => F[Unit] = l =>
+    val sizeCheck: Int => F[Unit] = l =>
       M.whenA(validators.size > l)(tooFewElements(l))
 
     val arrayValidator0: Vector[Json] => F[Unit] =
@@ -66,7 +66,7 @@ abstract class ValidatorF[F[_]](
           L.local(Env.index(index, json))(validator)
       }
 
-    withArray(arr => elemNumCheck(arr.size) *> arrayValidator0(arr))
+    withArray(arr => sizeCheck(arr.size) *> arrayValidator0(arr))
   }
 
   // }}} Array -----------------------------------------------------------------
