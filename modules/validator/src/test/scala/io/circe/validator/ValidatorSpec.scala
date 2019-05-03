@@ -13,42 +13,56 @@ trait Runner {
 
 class ValidatorSpec extends CatsSuite with Runner {
 
-  test("nullValidator should succeed on Json Null value") {
+  test("pass should always succeed") {
+    val actual = runValidator(pass, Json.Null)
+    val expected = Chain.empty
+
+    actual shouldBe expected
+  }
+
+  test("failed should always fail") {
+    val actual = runValidator(failed, Json.Null)
+    val expected = Chain(ErrorAt(List(),PredicateViolation("Fail unconditionally")))
+
+    actual shouldBe expected
+  }
+
+  test("nullValidator should succeed on Null") {
     val actual   = runValidator(nullValidator, Json.Null)
     val expected = Chain.empty
 
     actual shouldBe expected
   }
 
-  test("nullValidator should fail on values other than Json Null") {
+  test("nullValidator should fail on values other than Null") {
     val actual   = runValidator(nullValidator, Json.False)
     val expected = Chain.one(ErrorAt(List.empty, TypeMismatch("null", "false")))
 
     actual should ===(expected)
   }
 
-  test("trueValidator should succeed on Json True value") {
+  test("trueValidator should succeed on True") {
     val actual   = runValidator(trueValidator, Json.True)
     val expected = Chain.empty
 
     actual shouldBe expected
   }
 
-  test("trueValidator should fail on values other than Json True") {
+  test("trueValidator should fail on values other than True") {
     val actual   = runValidator(trueValidator, Json.False)
     val expected = Chain.one(ErrorAt(List.empty, TypeMismatch("true", "false")))
 
     actual should ===(expected)
   }
 
-  test("falseValidator should succeed on Json False value") {
+  test("falseValidator should succeed on False") {
     val actual   = runValidator(falseValidator, Json.False)
     val expected = Chain.empty
 
     actual shouldBe expected
   }
 
-  test("falseValidator should fail on values other than Json False") {
+  test("falseValidator should fail on values other than False") {
     val actual   = runValidator(falseValidator, Json.True)
     val expected = Chain.one(ErrorAt(List.empty, TypeMismatch("false", "true")))
 

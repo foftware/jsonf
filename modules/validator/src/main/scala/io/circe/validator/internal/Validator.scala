@@ -149,6 +149,12 @@ abstract class ValidatorF[F[_]](
   // {{{ Other -----------------------------------------------------------------
 
   /** group other */
+  val pass: F[Unit] = M.unit
+
+  /** group other */
+  val failed: F[Unit] = predicateViolation("Fail unconditionally")
+
+  /** group other */
   def withJson(validator: Json => F[Unit]): F[Unit] =
     L.reader(_.json) >>= validator
 
