@@ -7,6 +7,7 @@ ThisBuild / organization     := "org.foftware"
 ThisBuild / organizationName := "foftware"
 
 addCommandAlias("lint", ";scalafmtCheck;test:scalafmtCheck")
+addCommandAlias("fmt", ";scalafmt;test:scalafmt")
 
 lazy val root = (project in file("."))
   .settings(commonSettings)
