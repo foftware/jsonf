@@ -21,8 +21,6 @@ object JsonError extends Instances {
 
   final case class TypeMismatch(expected: String, got: String) extends JsonError
   final case class PredicateViolation(reason: String)          extends JsonError
-  final case class ArrayPredicateViolation[A, B](message: String)
-      extends JsonError
   final case class KeyNotFound(key: String, obj: JsonObject) extends JsonError
 
   def errorAt[F[_]](
