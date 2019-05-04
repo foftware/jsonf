@@ -2,10 +2,14 @@ package io.circe.validator
 
 import cats.tests.CatsSuite
 import cats.data.Chain
-import io.circe.Json
+import io.circe.{Json, JsonNumber, JsonObject}
 
-import io.circe.validator.JsonError.{PredicateViolation, TypeMismatch}
-import io.circe.validator.PathStep.Index
+import io.circe.validator.JsonError.{
+  PredicateViolation,
+  TypeMismatch,
+  KeyNotFound
+}
+import io.circe.validator.PathStep.{Index, Key}
 
 trait Runner {
   def runValidator = run _
@@ -14,7 +18,7 @@ trait Runner {
 class ValidatorSpec extends CatsSuite with Runner {
 
   test("pass should always succeed") {
-    val actual = runValidator(pass, Json.Null)
+    val actual   = runValidator(pass, Json.Null)
     val expected = Chain.empty
 
     actual shouldBe expected
@@ -22,7 +26,8 @@ class ValidatorSpec extends CatsSuite with Runner {
 
   test("failed should always fail") {
     val actual = runValidator(failed, Json.Null)
-    val expected = Chain(ErrorAt(List(),PredicateViolation("Fail unconditionally")))
+    val expected =
+      Chain(ErrorAt(List(), PredicateViolation("Fail unconditionally")))
 
     actual shouldBe expected
   }
@@ -69,6 +74,50 @@ class ValidatorSpec extends CatsSuite with Runner {
     actual shouldBe expected
   }
 
+  test("string should succeed if given String predicate succeeds") {
+    val actual   = runValidator(string(_ == "1234"), Json.fromString("1234"))
+    val expected = Chain.empty
+
+    actual shouldBe expected
+  }
+
+  test("string should fail if given String predicate fails") {
+    val actual = runValidator(string(_ == "1234"), Json.fromString("4321"))
+    val expected = Chain(
+      ErrorAt(
+        List(),
+        PredicateViolation(
+          "String value 4321 does not satisfy the given predicate."
+        )
+      )
+    )
+
+    actual shouldBe expected
+  }
+
+  test("number should succeed if given Number predicate succeeds") {
+    val jsonNumber = JsonNumber.fromDecimalStringUnsafe("1234")
+    val actual     = runValidator(number(_ == jsonNumber), Json.fromInt(1234))
+    val expected   = Chain.empty
+
+    actual shouldBe expected
+  }
+
+  test("number should fail if given Number predicate fails") {
+    val jsonNumber = JsonNumber.fromDecimalStringUnsafe("1234")
+    val actual     = runValidator(number(_ == jsonNumber), Json.fromInt(4321))
+    val expected = Chain(
+      ErrorAt(
+        List(),
+        PredicateViolation(
+          "Number value 4321 does not satisfy the given predicate."
+        )
+      )
+    )
+
+    actual shouldBe expected
+  }
+
   test("arrayValidator should succeed if all its elements succeed") {
     val validator = arrayValidator(Vector(trueValidator, falseValidator))
     val validated = Json.arr(Json.True, Json.False)
@@ -89,14 +138,40 @@ class ValidatorSpec extends CatsSuite with Runner {
 
   test("arrayValidator should fail if it validates less elements than expected") {
     val validator = arrayValidator(Vector(trueValidator))
-    val validated = Json.arr()
-    val actual    = runValidator(validator, validated)
+    val actual    = runValidator(validator, Json.arr())
     val expected = Chain(
       ErrorAt(
         List(),
         PredicateViolation("Array has less elements (0) than expected (1)")
       )
     )
+
+    actual shouldBe expected
+  }
+
+  test("objectValidator should succeed of all of its keys succeed") {
+    val validator = objectValidator(
+      Vector("a" -> trueValidator, "b" -> falseValidator)
+    )
+    val json     = Json.obj("a" -> Json.True, "b" -> Json.False)
+    val actual   = runValidator(validator, json)
+    val expected = Chain.empty
+
+    actual shouldBe expected
+  }
+
+  test("objectValidator should fail of any of its keys fail") {
+    val validator = objectValidator(Vector("a" -> trueValidator))
+    val actual    = runValidator(validator, Json.obj("a" -> Json.False))
+    val expected  = Chain(ErrorAt(List(Key("a")), TypeMismatch("true", "false")))
+
+    actual shouldBe expected
+  }
+
+  test("objectValidator should fail of any of its validated keys are missing") {
+    val validator = objectValidator(Vector("a" -> trueValidator))
+    val actual    = runValidator(validator, Json.obj())
+    val expected  = Chain(ErrorAt(List(), KeyNotFound("a", JsonObject.empty)))
 
     actual shouldBe expected
   }
