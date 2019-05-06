@@ -1,7 +1,7 @@
 package io.circe.validator.literal
 
 import io.circe.literal._
-import io.circe.validator.{run => runValidator}
+import io.circe.validator.{int, string, run => runValidator}
 
 import org.scalatest.{FunSuite, Matchers}
 
@@ -46,6 +46,22 @@ class LiteralSpec extends FunSuite with Matchers {
       "f": false,
       "n": null,
       "o": { "b": [ 1.1, 2.2, 3.3, 4.4 ] }
+    }"""
+
+    runValidator(validator, validated).isEmpty shouldBe true
+  }
+
+  test("interpolator should validate complex json with arguments") {
+    val validator = jsont"""{
+      "a": ${int(_ > 0)},
+      "b": ${string(_.length % 5 == 0)},
+      "c": ${string(_.toUpperCase == "ABCD")}
+    }"""
+
+    val validated = json"""{
+      "a": 1,
+      "b": "55555",
+      "c": "abcd"
     }"""
 
     runValidator(validator, validated).isEmpty shouldBe true
