@@ -24,9 +24,9 @@ class ValidatorMacros(val c: blackbox.Context) {
       def jnull(): Tree  = q"_root_.io.circe.validator.nullValidator"
       def jnum(s: CharSequence, decIndex: Int, expIndex: Int): Tree = {
         val number = if (decIndex < 0 && expIndex < 0) {
-          q"JsonNumber.fromIntegralStringUnsafe(${s.toString})"
+          q"io.circe.JsonNumber.fromIntegralStringUnsafe(${s.toString})"
         } else {
-          q"JsonNumber.fromDecimalStringUnsafe(${s.toString})"
+          q"io.circe.JsonNumber.fromDecimalStringUnsafe(${s.toString})"
         }
         q"_root_.io.circe.validator.eqNumberValidator($number)"
       }

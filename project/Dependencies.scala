@@ -14,6 +14,7 @@ object Dependencies {
   lazy val catsTestKit = "org.typelevel" %% "cats-testkit"  % Version.cats
   lazy val catsMtl = "org.typelevel" %% "cats-mtl-core" % Version.catsMtl
   lazy val circeCore = "io.circe" %% "circe-core" % Version.circe
+  lazy val circeLiteral = "io.circe" %% "circe-literal" % Version.circe
   lazy val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest
   lazy val scalaParserCombinators = "org.scala-lang.modules" %% "scala-parser-combinators" % Version.scalaParserCombinators
   lazy val jawnParser = "org.typelevel" %% "jawn-parser" % Version.jawn
@@ -33,7 +34,10 @@ object Dependencies {
 
   lazy val validatorDependencies = validatorCompileDependencies ++ validatorTestDependencies
 
-  lazy val literalDependencies = Seq(jawnParser)
+  lazy val literalCompileDependencies = Seq(jawnParser)
+  lazy val literalTestDependencies = Seq(circeLiteral, scalaTest) map (_ % Test)
+
+  lazy val literalDependencies = literalCompileDependencies ++ literalTestDependencies
 
   lazy val scalatestValidatorDependencies = Seq(scalaTest)
 }
