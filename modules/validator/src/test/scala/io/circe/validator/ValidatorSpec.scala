@@ -118,6 +118,113 @@ class ValidatorSpec extends CatsSuite with Runner {
     actual shouldBe expected
   }
 
+  test("int should succeeed if given Int predicate succeeds") {
+    val actual   = runValidator(int(_ > 4320), Json.fromInt(4321))
+    val expected = Chain()
+
+    actual shouldBe expected
+  }
+
+  test("int should fail if given Int predicate fails") {
+    val actual = runValidator(int(_ < 4320), Json.fromInt(4321))
+    val expected = Chain(
+      ErrorAt(
+        List(),
+        PredicateViolation(
+          "Number value 4321 does not satisfy the given predicate."
+        )
+      )
+    )
+
+    actual shouldBe expected
+  }
+
+  test("bigInt should succeeed if given BigInt predicate succeeds") {
+    val actual   = runValidator(bigInt(_ > 4320), Json.fromBigInt(4321))
+    val expected = Chain()
+
+    actual shouldBe expected
+  }
+
+  test("bigInt should fail if given BigInt predicate fails") {
+    val actual = runValidator(bigInt(_ < 4320), Json.fromBigInt(4321))
+    val expected = Chain(
+      ErrorAt(
+        List(),
+        PredicateViolation(
+          "Number value 4321 does not satisfy the given predicate."
+        )
+      )
+    )
+
+    actual shouldBe expected
+  }
+
+  test("bigDecimal should succeeed if given BigDecimal predicate succeeds") {
+    val predicate = bigDecimal(_ > BigDecimal.decimal(4320))
+    val actual =
+      runValidator(predicate, Json.fromBigDecimal(BigDecimal.decimal(4321)))
+    val expected = Chain()
+
+    actual shouldBe expected
+  }
+
+  test("long should succeeed if given Long predicate succeeds") {
+    val actual   = runValidator(long(_ > 4320), Json.fromLong(4321))
+    val expected = Chain()
+
+    actual shouldBe expected
+  }
+
+  test("long should fail if given Long predicate fails") {
+    val actual = runValidator(long(_ < 4320), Json.fromLong(4321))
+    val expected = Chain(
+      ErrorAt(
+        List(),
+        PredicateViolation(
+          "Number value 4321 does not satisfy the given predicate."
+        )
+      )
+    )
+
+    actual shouldBe expected
+  }
+
+  test("double should succeeed if given Double predicate succeeds") {
+    val actual   = runValidator(double(_ > 4320.0), Json.fromDoubleOrNull(4321.0))
+    val expected = Chain()
+
+    actual shouldBe expected
+  }
+
+  test("double should fail if given Double predicate fails") {
+    val actual = runValidator(long(_ < 4320.0), Json.fromDoubleOrNull(4321.0))
+    val expected = Chain(
+      ErrorAt(
+        List(),
+        PredicateViolation(
+          "Number value 4321.0 does not satisfy the given predicate."
+        )
+      )
+    )
+
+    actual shouldBe expected
+  }
+
+  test("bigDecimal should fail if given BigDecimal predicate fails") {
+    val actual = runValidator(bigInt(_ < 4320), Json.fromInt(4321))
+    val expected = Chain(
+      ErrorAt(
+        List(),
+        PredicateViolation(
+          "Number value 4321 does not satisfy the given predicate."
+        )
+      )
+    )
+
+    actual shouldBe expected
+  }
+
   test("arrayValidator should succeed if all its elements succeed") {
     val validator = arrayValidator(Vector(trueValidator, falseValidator))
     val validated = Json.arr(Json.True, Json.False)

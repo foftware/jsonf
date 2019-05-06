@@ -159,7 +159,7 @@ abstract class ValidatorF[F[_]](
   def eqStringValidator(s: String): F[Unit] =
     withString(
       s0 =>
-        M.whenA(s =!= s0) {
+        M.unlessA(s === s0) {
           val reason = s"String: $s does not match expected $s0"
           predicateViolation(reason)
         }
