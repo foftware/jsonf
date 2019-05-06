@@ -1,6 +1,7 @@
 # jsont stands for Json Template
 
 [![Build Status](https://travis-ci.com/foftware/jsont.svg?branch=master)](https://travis-ci.com/foftware/jsont)
+[![codecov](https://codecov.io/gh/foftware/jsont/branch/master/graph/badge.svg)](https://codecov.io/gh/foftware/jsont)
 
 ## Run
 
