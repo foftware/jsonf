@@ -118,6 +118,29 @@ class ValidatorSpec extends CatsSuite with Runner {
     actual shouldBe expected
   }
 
+  test("eqNumberValidator should succeed if numbers are equal") {
+    val jsonNumber = JsonNumber.fromIntegralStringUnsafe("1234")
+    val validator  = eqNumberValidator(jsonNumber)
+    val actual     = runValidator(validator, Json.fromInt(1234))
+    val expected   = Chain.empty
+
+    actual shouldBe expected
+  }
+
+  test("eqNumberValidator should fail if numbers are not equal") {
+    val jsonNumber = JsonNumber.fromIntegralStringUnsafe("1234")
+    val validator  = eqNumberValidator(jsonNumber)
+    val actual     = runValidator(validator, Json.fromInt(4321))
+    val expected = Chain(
+      ErrorAt(
+        List(),
+        PredicateViolation("Number: 1234 does not match expected 4321")
+      )
+    )
+
+    actual shouldBe expected
+  }
+
   test("int should succeeed if given Int predicate succeeds") {
     val actual   = runValidator(int(_ > 4320), Json.fromInt(4321))
     val expected = Chain()
