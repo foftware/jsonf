@@ -9,7 +9,12 @@ import cats.syntax.eq._
 import cats.syntax.flatMap._
 import cats.syntax.foldable._
 import io.circe.Json.{False, Null, True}
-import io.circe.validator.JsonError.{keyNotFound, mismatch, predicateViolation}
+import io.circe.validator.JsonError.{
+  keyNotFound,
+  mismatch,
+  predicateViolation,
+  numberCoercion
+}
 import io.circe.validator.{Env, Errors}
 import io.circe.{Json, JsonNumber, JsonObject}
 
@@ -71,6 +76,10 @@ abstract class ValidatorF[F[_]](
   // {{{ Number ----------------------------------------------------------------
 
   /** @group number */
+  private[internal] def numViolationMsg(n: JsonNumber): String =
+    s"Number value $n does not satisfy the given predicate."
+
+  /** @group number */
   def eqNumberValidator(num: JsonNumber): F[Unit] =
     withNumber(
       num0 =>
@@ -86,12 +95,61 @@ abstract class ValidatorF[F[_]](
         json => json.asNumber.fold(mismatch("Number", json))(f)
     )
 
-  /** @group string */
-  def number(predicate: JsonNumber => Boolean): F[Unit] = {
-    def mkErrorMsg(n: JsonNumber): String =
-      s"Number value $n does not satisfy the given predicate."
+  /** @group number */
+  def number(predicate: JsonNumber => Boolean): F[Unit] =
+    withNumber(liftPredicate(predicate, numViolationMsg))
 
-    withNumber(liftPredicate(predicate, mkErrorMsg))
+  /** @group number */
+  def int(predicate: Int => Boolean): F[Unit] = {
+    def liftOption(optionNum: Option[Int], num: JsonNumber): F[Unit] =
+      optionNum.fold(
+        numberCoercion("Int", num)
+      )(liftPredicate(predicate, Function.const(numViolationMsg(num))))
+
+    withNumber(num => liftOption(num.toInt, num))
+  }
+
+  /** @group number */
+  def bigInt(predicate: BigInt => Boolean): F[Unit] = {
+    def liftOption(optionNum: Option[BigInt], num: JsonNumber): F[Unit] =
+      optionNum.fold(
+        numberCoercion("BigInt", num)
+      )(liftPredicate(predicate, Function.const(numViolationMsg(num))))
+
+    withNumber(num => liftOption(num.toBigInt, num))
+  }
+
+  /** @group number */
+  def bigDecimal(predicate: BigDecimal => Boolean): F[Unit] = {
+    def liftOption(optionNum: Option[BigDecimal], num: JsonNumber): F[Unit] =
+      optionNum.fold(
+        numberCoercion("BigDecimal", num)
+      )(liftPredicate(predicate, Function.const(numViolationMsg(num))))
+
+    withNumber(num => liftOption(num.toBigDecimal, num))
+  }
+
+  /** @group number */
+  def long(predicate: Long => Boolean): F[Unit] = {
+    def liftOption(optionNum: Option[Long], num: JsonNumber): F[Unit] =
+      optionNum.fold(
+        numberCoercion("Long", num)
+      )(liftPredicate(predicate, Function.const(numViolationMsg(num))))
+
+    withNumber(num => liftOption(num.toLong, num))
+  }
+
+  /** @group number
+    *
+    * Note: Won't fail on number coercion, but can get truncated in the process.
+    */
+  def double(predicate: Double => Boolean): F[Unit] = {
+    withNumber(
+      num =>
+        liftPredicate(predicate, Function.const(numViolationMsg(num)))(
+          num.toDouble
+        )
+    )
   }
 
   // }}} Number ----------------------------------------------------------------

@@ -104,7 +104,7 @@ class ValidatorSpec extends CatsSuite with Runner {
   }
 
   test("number should fail if given Number predicate fails") {
-    val jsonNumber = JsonNumber.fromDecimalStringUnsafe("1234")
+    val jsonNumber = JsonNumber.fromIntegralStringUnsafe("1234")
     val actual     = runValidator(number(_ == jsonNumber), Json.fromInt(4321))
     val expected = Chain(
       ErrorAt(

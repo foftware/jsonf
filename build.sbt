@@ -14,12 +14,13 @@ lazy val root = (project in file("."))
   .settings(
     initialCommands in console :=
 			"""
-        |import io.circe._
+				|import io.circe._
         |import io.circe.syntax._
 				|import io.circe.validator._
 				|import io.circe.validator.literal._
 				|import io.circe.validator.internal._
-				""".stripMargin
+				""".stripMargin,
+		scalacOptions in (Compile, console) --= Seq("-Xfatal-warnings")
   ).dependsOn(literal, `scalatest-validator`, validator)
   .aggregate(literal, `scalatest-validator`, validator)
 
