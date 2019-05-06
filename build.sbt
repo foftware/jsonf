@@ -27,20 +27,20 @@ lazy val root = (project in file("."))
 lazy val literal = (project in file("./modules/literal"))
   .settings(commonSettings)
   .settings(
-    libraryDependencies := literalDependencies,
+    libraryDependencies ++= literalDependencies,
     name := "circe-validator-literal",
   ).dependsOn(validator)
 
 lazy val `scalatest-validator` = (project in file("./modules/scalatest-circe-validator/"))
   .settings(commonSettings)
   .settings(
-    libraryDependencies := scalatestValidatorDependencies,
+    libraryDependencies ++= scalatestValidatorDependencies,
     name := "scalatest-circe-validator",
   ).dependsOn(validator)
 
 lazy val validator = (project in file("./modules/validator"))
   .settings(commonSettings)
   .settings(
-    libraryDependencies := validatorDependencies,
+    libraryDependencies ++= validatorDependencies,
     name := "circe-validator",
   )

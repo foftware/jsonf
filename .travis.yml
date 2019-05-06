@@ -1,5 +1,14 @@
 language: scala
+
 scala:
-  - 2.12.8
+- 2.12.8
+
 script:
-  - sbt lint compile test
+- sbt clean lint compile coverage test coverageReport
+
+after_success:
+- bash <(curl -s https://codecov.io/bash)
+
+env:
+  global:
+  - secure: W/YAseU9kcj4EQAL5/3z1e2oshZ+Y0C0NL4kn2rcVSQgRMF31gOS8Sh7EqwIxzsFo0UCulrvty6fDiTNwzC/rn5TEPPMQTf1uxmuMPeFZAc4lIT6Ubsu/+AeZXtF1Wnbetpt234KVtwbao431qA/chn22aoQ8d1CHeOIf9+vGSN0/HONn3D0e6qzBt6axDyjPYSbg2RXfKS+pybvkiz/BCWPdJygiNkQDIfI+QzY976LfnGKdKl1yCp+Gi3BIhytMsxbc7zzH5mLE73O0ul0ZbXTY2jd3eq9HvjTfG3Vdo5NH9v8ZA0Ou542sXHb4eU0lnsWCyPRbZw5ZdjKRC+mO+v7yCgQjNZEpnJETcrSy1r1GwL0yYG8gmtOzL+mDRG4mDIqXMMJfTI2dn83/uv7cD9eRaP/tAf83OpKq8oHEg6xVx/mimY+aWQL+AzvvPL4gwFaDU5KF40iY4aaSDCgRxXHeTfovTplcIEWC+zZ6puy1lpwMfQKc0Nqjd7L+Lo7X+fVfV1RFmAc7LJAacTDijBWc/D7ReESKhWHU/16U8lhWwDw8UvzwmZQlqYPfzVDxxr1yzKbwk+kvUUq8aK3LprLfZGCozoe2nlJvEfX5p3zNyJDmcvJNXmnAHriQ72xgaXUOzN0Z1XZUhW5C5agZddht1bHW+fDcIE+B7OvHfQ=
