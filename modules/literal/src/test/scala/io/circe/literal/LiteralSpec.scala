@@ -1,7 +1,12 @@
 package io.circe.validator.literal
 
 import io.circe.literal._
-import io.circe.validator.{int, string, run => runValidator}
+import io.circe.validator.{
+  int,
+  string,
+  regex => regularExp,
+  run => runValidator
+}
 
 import org.scalatest.{FunSuite, Matchers}
 
@@ -55,15 +60,29 @@ class LiteralSpec extends FunSuite with Matchers {
     val validator = jsont"""{
       "a": ${int(_ > 0)},
       "b": ${string(_.length % 5 == 0)},
-      "c": ${string(_.toUpperCase == "ABCD")}
+      "c": [
+				${string(_.toUpperCase == "ABCD")},
+      	${regularExp("""\d\d\d\d-\d\d-\d\d""".r)}
+			]
     }"""
 
     val validated = json"""{
       "a": 1,
       "b": "55555",
-      "c": "abcd"
+      "c": [
+				"abcd",
+ 				"2019-12-12"
+			]
     }"""
 
     runValidator(validator, validated).isEmpty shouldBe true
+  }
+
+  test("interpolator should typecheck arguments properly") {
+    assertDoesNotCompile(""" jsont"[1, true, null" """)
+  }
+
+  test("interpolator should arguments properly") {
+    assertTypeError("""jsont"${true}"""")
   }
 }

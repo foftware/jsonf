@@ -15,6 +15,10 @@ trait Runner {
   def runValidator = run _
 }
 
+object Regex {
+  def regularExp = regex _
+}
+
 class ValidatorSpec extends CatsSuite with Runner {
 
   test("pass should always succeed") {
@@ -88,6 +92,50 @@ class ValidatorSpec extends CatsSuite with Runner {
         List(),
         PredicateViolation(
           "String value 4321 does not satisfy the given predicate."
+        )
+      )
+    )
+
+    actual shouldBe expected
+  }
+
+  test("eqStringValidator should succeed if given String predicate succeeds") {
+    val actual =
+      runValidator(eqStringValidator("1234"), Json.fromString("1234"))
+    val expected = Chain.empty
+
+    actual shouldBe expected
+  }
+
+  test("eqStringValidator should fail if given strings are not equal") {
+    val actual =
+      runValidator(eqStringValidator("1234"), Json.fromString("4321"))
+    val expected = Chain(
+      ErrorAt(
+        List(),
+        PredicateViolation("String: 1234 does not match expected 4321")
+      )
+    )
+
+    actual shouldBe expected
+  }
+
+  test("regex should succeed if given Regex matches") {
+    val jsonString = Json.fromString("1-2-3")
+    val actual     = runValidator(Regex.regularExp("""\d-\d-\d""".r), jsonString)
+    val expected   = Chain.empty
+
+    actual shouldBe expected
+  }
+
+  test("regex should fail if given Regex matching fails") {
+    val jsonString = Json.fromString("1-2")
+    val actual     = runValidator(Regex.regularExp("""\d-\d-\d""".r), jsonString)
+    val expected = Chain(
+      ErrorAt(
+        List(),
+        PredicateViolation(
+          """String: 1-2 does not match regular expression \d-\d-\d"""
         )
       )
     )

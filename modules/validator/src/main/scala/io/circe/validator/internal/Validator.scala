@@ -17,6 +17,7 @@ import io.circe.validator.JsonError.{
 }
 import io.circe.validator.{Env, Errors}
 import io.circe.{Json, JsonNumber, JsonObject}
+import scala.util.matching.Regex
 
 /** Generic validator
   *
@@ -177,6 +178,16 @@ abstract class ValidatorF[F[_]](
       s"String value $s does not satisfy the given predicate."
 
     withString(liftPredicate(predicate, mkErrorMsg))
+  }
+
+  def regex(regex: Regex): F[Unit] = {
+    withString(
+      s =>
+        M.unlessA(regex.unapplySeq(s).isDefined) {
+          val reason = s"String: $s does not match regular expression $regex"
+          predicateViolation(reason)
+        }
+    )
   }
 
   // }}} String ----------------------------------------------------------------
