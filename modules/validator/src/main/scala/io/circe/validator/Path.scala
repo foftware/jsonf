@@ -7,6 +7,7 @@ sealed trait PathStep
 object PathStep {
   final case class Key(key: String)  extends PathStep
   final case class Index(index: Int) extends PathStep
+  final case object Root             extends PathStep
 
   implicit val orderPathStep: Order[PathStep] = Order.allEqual
 }

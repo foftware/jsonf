@@ -3,18 +3,23 @@ package org.scalatest
 import cats.implicits.catsKernelStdOrderForList
 import io.circe.{Encoder, Json}
 import io.circe.syntax._
-import io.circe.validator.{ErrorAt, Errors, Path}
+import io.circe.validator.{ErrorAt, Errors, PathStep}
+import io.circe.validator.PathStep.{Index, Key, Root}
 import io.circe.validator.JsonError
 import io.circe.validator.JsonError.{
   KeyNotFound,
+  NumberCoercion,
   TypeMismatch,
   PredicateViolation
 }
 import org.scalactic.Prettifier
 
 object JsonValidatorPrettifier {
-  implicit val pathEncoder: Encoder[Path] =
-    Encoder.instance(Function.const(Json.fromString("path")))
+  implicit val pathStepEncoder: Encoder[PathStep] = Encoder.instance {
+    case Index(i) => Json.fromInt(i)
+    case Key(key) => Json.fromString(key)
+    case Root     => Json.fromString("root")
+  }
 
   implicit val jsonErrorEncoder: Encoder[JsonError] = Encoder.instance {
     case PredicateViolation(reason) =>
@@ -32,8 +37,11 @@ object JsonValidatorPrettifier {
         "kind"   -> Json.fromString("type mismatch"),
         "reason" -> Json.fromString(s"expected: $expected, got: $got")
       )
-    //FIXME
-    case _ => ???
+    case NumberCoercion(typ, num) =>
+      Json.obj(
+        "kind"   -> Json.fromString("number coercion"),
+        "reason" -> Json.fromString(s"cannot coerce $num to $typ")
+      )
   }
 
   implicit val errorAtEncoder: Encoder[ErrorAt] = Encoder.instance(
