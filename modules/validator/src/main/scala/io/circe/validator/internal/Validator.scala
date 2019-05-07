@@ -180,6 +180,7 @@ abstract class ValidatorF[F[_]](
     withString(liftPredicate(predicate, mkErrorMsg))
   }
 
+  /** @group string */
   def regex(regex: Regex): F[Unit] = {
     withString(
       s =>
