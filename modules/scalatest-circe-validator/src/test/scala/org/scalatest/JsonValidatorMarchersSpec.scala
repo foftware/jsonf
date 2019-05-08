@@ -34,7 +34,7 @@ class JsonValidatorMatchersSpec
   "matchJson" should {
 
     "succeed" in {
-``      json"""{ "a": true }""" should matchJson"""{ "a": true }"""
+      json"""{ "a": true }""" should matchJson"""{ "a": true }"""
       json"""{ "a": false }""" should matchJson"""{ "a": false }"""
       json"""{ "a": null }""" should matchJson"""{ "a": null }"""
       json"""{ "a": 123 }""" should matchJson"""{ "a": 123 }"""

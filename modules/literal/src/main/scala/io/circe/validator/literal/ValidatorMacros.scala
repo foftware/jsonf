@@ -64,8 +64,7 @@ trait ValidatorMacrosTrait {
 
     val holes = args.map(argument => Hole(argument.tree))
 
-    val jsonString
-        : String = stringParts.zip(holes.map(_.hole)).foldLeft("") {
+    val jsonString: String = stringParts.zip(holes.map(_.hole)).foldLeft("") {
       case (acc, (part, hole)) => {
         // quotation mark
         val qm = "\""
