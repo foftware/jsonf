@@ -7,7 +7,8 @@ import java.util.UUID
 import scala.reflect.macros.blackbox
 import scala.util.control.NonFatal
 
-class ValidatorMacros(val c: blackbox.Context) {
+trait ValidatorMacros {
+  val c: blackbox.Context
   import c.universe._
 
   case class Hole(hole: String, value: Tree)
@@ -54,35 +55,34 @@ class ValidatorMacros(val c: blackbox.Context) {
     }
   }
 
-  final def validatorStringContext(args: c.Expr[Any]*): c.Expr[Validator] = {
-    c.prefix.tree match {
-      case Apply(_, Apply(_, parts) :: Nil) => {
-        val stringParts = parts map {
-          case Literal(Constant(part: String)) => part
-          case _                               => c.abort(c.enclosingPosition, "should not ever happen")
-        }
-
-        val holes = args.map(argument => Hole(argument.tree))
-
-        val jsonString
-            : String = stringParts.zip(holes.map(_.hole)).foldLeft("") {
-          case (acc, (part, hole)) => {
-            // quotation mark
-            val qm = "\""
-            s"$acc$part$qm$hole$qm"
-          }
-        } + stringParts.last
-
-        c.Expr[Validator](parse(jsonString, holes) fold ({ e =>
-          val sw = new StringWriter
-          e.printStackTrace(new PrintWriter(sw))
-
-          c.abort(
-            c.enclosingPosition,
-            s"Invalid JSON in interpolated string, ${sw.toString}"
-          )
-        }, identity))
-      }
+  final def validatorStringContextTree(args: c.Expr[Any]*): Tree = {
+    val Apply(_, Apply(_, parts) :: Nil) = c.prefix.tree
+    val stringParts = parts map {
+      case Literal(Constant(part: String)) => part
+      case _                               => c.abort(c.enclosingPosition, "should not ever happen")
     }
+
+    val holes = args.map(argument => Hole(argument.tree))
+
+    val jsonString: String = stringParts.zip(holes.map(_.hole)).foldLeft("") {
+      case (acc, (part, hole)) => {
+        // quotation mark
+        val qm = "\""
+        s"$acc$part$qm$hole$qm"
+      }
+    } + stringParts.last
+
+    parse(jsonString, holes) fold ({ e =>
+      val sw = new StringWriter
+      e.printStackTrace(new PrintWriter(sw))
+
+      c.abort(
+        c.enclosingPosition,
+        s"Invalid JSON in interpolated string, ${sw.toString}"
+      )
+    }, identity)
   }
+
+  final def validatorStringContext(args: c.Expr[Any]*): c.Expr[Validator] =
+    c.Expr[Validator](validatorStringContextTree(args: _*))
 }

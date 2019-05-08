@@ -16,6 +16,7 @@ lazy val root = (project in file("."))
 			"""
 				|import io.circe._
         |import io.circe.syntax._
+				|import io.circe.literal._
 				|import io.circe.validator._
 				|import io.circe.validator.literal._
 				|import io.circe.validator.internal._
@@ -36,7 +37,7 @@ lazy val `scalatest-validator` = (project in file("./modules/scalatest-circe-val
   .settings(
     libraryDependencies ++= scalatestValidatorDependencies,
     name := "scalatest-circe-validator",
-  ).dependsOn(validator)
+  ).dependsOn(literal, validator)
 
 lazy val validator = (project in file("./modules/validator"))
   .settings(commonSettings)

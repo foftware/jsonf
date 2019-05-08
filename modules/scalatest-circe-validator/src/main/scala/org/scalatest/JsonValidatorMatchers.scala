@@ -1,9 +1,10 @@
 package org.scalatest
 
-import io.circe.validator.{Validator, run => runValidator}
 import io.circe.Json
-import org.scalatest.matchers.{Matcher, MatchResult}
+import io.circe.validator.{Validator, run => runValidator}
 import org.scalatest.JsonValidatorPrettifier.jsonValidatorPrettifier
+import org.scalatest.matchers.{MatchResult, Matcher}
+import scala.language.experimental.macros
 
 trait JsonValidatorMatchers {
 
@@ -22,4 +23,9 @@ trait JsonValidatorMatchers {
 
   def passValidation(validator: Validator): Matcher[Json] =
     new JsonPassesValidation(validator)
+
+  implicit class MatchJsonInterpolator(sc: StringContext) {
+    def matchJson(args: Any*): Matcher[Json] =
+      macro MatchJsonMacros.jsonMatcherStringContext
+  }
 }

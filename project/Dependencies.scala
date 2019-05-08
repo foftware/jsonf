@@ -39,5 +39,5 @@ object Dependencies {
 
   lazy val literalDependencies = literalCompileDependencies ++ literalTestDependencies
 
-  lazy val scalatestValidatorDependencies = Seq(scalaTest)
+  lazy val scalatestValidatorDependencies = Seq(scalaTest, circeLiteral % Test)
 }

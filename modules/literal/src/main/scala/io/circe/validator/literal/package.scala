@@ -4,9 +4,8 @@ import scala.language.experimental.macros
 
 package object literal {
 
-  implicit class ValidatorInterpolator(sc: StringContext) {
-    // jsont. T for template
+  implicit class JsontInterpolator(sc: StringContext) {
     def jsont(args: Any*): Validator =
-      macro ValidatorMacros.validatorStringContext
+      macro JsontMacros.validatorStringContext
   }
 }
