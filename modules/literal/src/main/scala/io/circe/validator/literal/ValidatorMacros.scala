@@ -7,7 +7,7 @@ import java.util.UUID
 import scala.reflect.macros.blackbox
 import scala.util.control.NonFatal
 
-trait ValidatorMacrosTrait {
+trait ValidatorMacros {
   val c: blackbox.Context
   import c.universe._
 
@@ -86,5 +86,3 @@ trait ValidatorMacrosTrait {
   final def validatorStringContext(args: c.Expr[Any]*): c.Expr[Validator] =
     c.Expr[Validator](validatorStringContextTree(args: _*))
 }
-
-class ValidatorMacros(val c: blackbox.Context) extends ValidatorMacrosTrait
