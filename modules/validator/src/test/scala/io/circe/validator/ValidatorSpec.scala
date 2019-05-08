@@ -25,9 +25,10 @@ class ValidatorSpec extends CatsSuite with Runner {
   }
 
   test("failed should always fail") {
-    val actual = runValidator(failed(), Json.Null)
+    val msg    = "Unconditional validator fail"
+    val actual = runValidator(failed(msg), Json.Null)
     val expected =
-      Chain(ErrorAt(List(Root), Violation("Fail unconditionally")))
+      Chain(ErrorAt(List(Root), Violation(msg)))
 
     actual shouldBe expected
   }
@@ -193,15 +194,9 @@ class ValidatorSpec extends CatsSuite with Runner {
   }
 
   test("int should fail if given Int predicate fails") {
-    val actual = runValidator(int(_ < 4320), Json.fromInt(4321))
-    val expected = Chain(
-      ErrorAt(
-        List(Root),
-        Violation(
-          "Numeric value 4321 does not satisfy the given predicate."
-        )
-      )
-    )
+    val msg: Int => String = actual => s"Int $actual is less or equal to 4320"
+    val actual             = runValidator(int(_ < 4320, msg), Json.fromInt(4321))
+    val expected           = Chain(ErrorAt(List(Root), Violation(msg(4321))))
 
     actual shouldBe expected
   }
