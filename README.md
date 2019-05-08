@@ -17,6 +17,11 @@ res1: cats.data.Chain[io.circe.validator.ErrorAt] = Chain(ErrorAt(List(),TypeMis
 res2: cats.data.Chain[io.circe.validator.ErrorAt] = Chain()
 ```
 
+Or in scalatest 
+```scala
+json"""{ "a": true }"""  should matchJson"""{ "a": true }"""
+```
+
 ## Resouces
 
 ### Template related stuff
