@@ -12,7 +12,7 @@ import io.circe.Json.{False, Null, True}
 import io.circe.validator.JsonError.{
   keyNotFound,
   mismatch,
-  predicateViolation,
+  violation,
   numberCoercion
 }
 import io.circe.validator.{Env, Errors}
@@ -57,7 +57,7 @@ abstract class ValidatorF[F[_]](
       validators: Vector[F[Unit]]
   ): F[Unit] = {
     val tooFewElements: Int => F[Unit] = l =>
-      predicateViolation(
+      violation(
         s"Array has less elements (${l}) than expected (${validators.length})"
       )
 
@@ -86,7 +86,7 @@ abstract class ValidatorF[F[_]](
       num0 =>
         M.unlessA(num === num0) {
           lazy val reason = s"Number: $num does not match expected $num0"
-          predicateViolation(reason)
+          violation(reason)
         }
     )
 
@@ -162,7 +162,7 @@ abstract class ValidatorF[F[_]](
       s0 =>
         M.unlessA(s === s0) {
           val reason = s"String: $s does not match expected $s0"
-          predicateViolation(reason)
+          violation(reason)
         }
     )
 
@@ -186,7 +186,7 @@ abstract class ValidatorF[F[_]](
       s =>
         M.unlessA(regex.unapplySeq(s).isDefined) {
           val reason = s"String: $s does not match regular expression $regex"
-          predicateViolation(reason)
+          violation(reason)
         }
     )
   }
@@ -228,7 +228,8 @@ abstract class ValidatorF[F[_]](
   val pass: F[Unit] = M.unit
 
   /** group other */
-  val failed: F[Unit] = predicateViolation("Fail unconditionally")
+  def failed(msg: String = "Fail unconditionally"): F[Unit] =
+    violation(msg)
 
   /** group other */
   def trueValidator(): F[Unit] =
@@ -257,7 +258,7 @@ abstract class ValidatorF[F[_]](
   def liftPredicate[A](
       predicate: A => Boolean,
       mkMsg: A => String
-  ): A => F[Unit] = a => M.unlessA(predicate(a))(predicateViolation(mkMsg(a)))
+  ): A => F[Unit] = a => M.unlessA(predicate(a))(violation(mkMsg(a)))
 
   // }}} Lifting ---------------------------------------------------------------
 }

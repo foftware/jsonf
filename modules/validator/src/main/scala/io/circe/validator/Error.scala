@@ -20,7 +20,7 @@ sealed trait JsonError
 object JsonError extends Instances {
 
   final case class TypeMismatch(expected: String, got: String) extends JsonError
-  final case class PredicateViolation(reason: String)          extends JsonError
+  final case class Violation(reason: String)                   extends JsonError
   final case class KeyNotFound(key: String, obj: JsonObject)   extends JsonError
   final case class NumberCoercion(`type`: String, num: JsonNumber)
       extends JsonError
@@ -36,10 +36,10 @@ object JsonError extends Instances {
   )(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
     errorAt(TypeMismatch(a.show, b.show))
 
-  def predicateViolation[F[_]](
+  def violation[F[_]](
       reason: String
   )(implicit FT: FT[F, Errors], L: AL[F, Env], M: Monad[F]): F[Unit] =
-    errorAt(PredicateViolation(reason))
+    errorAt(Violation(reason))
 
   def keyNotFound[F[_]](
       key: String,

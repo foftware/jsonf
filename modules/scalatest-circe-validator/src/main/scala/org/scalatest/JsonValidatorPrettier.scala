@@ -10,7 +10,7 @@ import io.circe.validator.JsonError.{
   KeyNotFound,
   NumberCoercion,
   TypeMismatch,
-  PredicateViolation
+  Violation
 }
 import org.scalactic.Prettifier
 
@@ -22,7 +22,7 @@ object JsonValidatorPrettifier {
   }
 
   implicit val jsonErrorEncoder: Encoder[JsonError] = Encoder.instance {
-    case PredicateViolation(reason) =>
+    case Violation(reason) =>
       Json.obj(
         "kind"   -> Json.fromString("validation error"),
         "reason" -> Json.fromString(reason)
