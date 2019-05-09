@@ -323,8 +323,8 @@ class ValidatorSpec extends CatsSuite with Runner {
     val validator = forall(trueValidator)
     val validated = Json.arr(Json.True, Json.True)
     val actual    = runValidator(validator, validated)
-    val expected = Chain()
-      // Chain(ErrorAt(List(Root, Index(1)), TypeMismatch("false", "true")))
+    val expected  = Chain()
+    // Chain(ErrorAt(List(Root, Index(1)), TypeMismatch("false", "true")))
 
     actual shouldBe expected
   }
@@ -333,7 +333,8 @@ class ValidatorSpec extends CatsSuite with Runner {
     val validator = forall(trueValidator)
     val validated = Json.arr(Json.True, Json.True, Json.False, Json.True)
     val actual    = runValidator(validator, validated)
-    val expected = Chain(ErrorAt(List(Root, Index(2)), TypeMismatch("true", "false")))
+    val expected =
+      Chain(ErrorAt(List(Root, Index(2)), TypeMismatch("true", "false")))
 
     actual shouldBe expected
   }

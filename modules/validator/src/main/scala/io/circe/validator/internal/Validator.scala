@@ -41,7 +41,7 @@ abstract class ValidatorF[F[_]](
     implicit
     FT: FT[F, Errors],
     L: AL[F, Env],
-    M: Monad[F],
+    M: Monad[F]
 ) {
 
   // {{{ Array -----------------------------------------------------------------
@@ -67,25 +67,30 @@ abstract class ValidatorF[F[_]](
       M.whenA(validators.size > l)(tooFewElements(l))
 
     val arrayValidator0: Vector[Json] => F[Unit] =
-      validators.zip(_).traverseWithIndexM{
-        case ((validator, json), index) =>
-          L.local(Env.index(index, json))(validator)
-      }.void
+      validators
+        .zip(_)
+        .traverseWithIndexM {
+          case ((validator, json), index) =>
+            L.local(Env.index(index, json))(validator)
+        }
+        .void
 
     withArray(arr => sizeCheck(arr.size) *> arrayValidator0(arr))
   }
 
   /** @group array */
   def forall(validator: F[Unit]): F[Unit] =
-    withArray(arr =>
-      Vector.fill(arr.length)(validator).zip(arr).traverseWithIndexM{
-        case ((validator, json), index) =>
-          L.local(Env.index(index, json))(validator)
-      }.void
+    withArray(
+      arr =>
+        Vector
+          .fill(arr.length)(validator)
+          .zip(arr)
+          .traverseWithIndexM {
+            case ((validator, json), index) =>
+              L.local(Env.index(index, json))(validator)
+          }
+          .void
     )
-
-  /** @group array */
-
 
   // }}} Array -----------------------------------------------------------------
   // {{{ Number ----------------------------------------------------------------
