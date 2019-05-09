@@ -319,12 +319,34 @@ class ValidatorSpec extends CatsSuite with Runner {
     actual shouldBe expected
   }
 
+  test("array should succeed if given Array predicate succeeds") {
+    val validator = array(_.length > 1)
+    val validated = Json.arr(Json.True, Json.True)
+    val actual    = runValidator(validator, validated)
+    val expected  = Chain()
+
+    actual shouldBe expected
+  }
+
+  test("array should fail if given Array predicate fails") {
+    val validator = array(_.length > 2)
+    val validated = Json.arr(Json.True, Json.True)
+    val actual    = runValidator(validator, validated)
+    val expected = Chain(
+      ErrorAt(
+        List(Root),
+        Violation("Array does not satisfy the given predicate.")
+      )
+    )
+
+    actual shouldBe expected
+  }
+
   test("forall should succeed if all elements pass given validation") {
     val validator = forall(trueValidator)
     val validated = Json.arr(Json.True, Json.True)
     val actual    = runValidator(validator, validated)
     val expected  = Chain()
-    // Chain(ErrorAt(List(Root, Index(1)), TypeMismatch("false", "true")))
 
     actual shouldBe expected
   }

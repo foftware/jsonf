@@ -78,6 +78,12 @@ abstract class ValidatorF[F[_]](
     withArray(arr => sizeCheck(arr.size) *> arrayValidator0(arr))
   }
 
+  def array(
+      predicate: Vector[Json] => Boolean,
+      msg: Vector[Json] => String =
+        Function.const(s"Array does not satisfy the given predicate.")
+  ): F[Unit] = withArray(liftPredicate(predicate, msg))
+
   /** @group array */
   def forall(validator: F[Unit]): F[Unit] =
     withArray(
