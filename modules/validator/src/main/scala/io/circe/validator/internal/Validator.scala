@@ -6,8 +6,10 @@ import cats.instances.vector._
 import cats.mtl.{ApplicativeLocal => AL, FunctorTell => FT}
 import cats.syntax.apply._
 import cats.syntax.eq._
+import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.foldable._
+import cats.syntax.traverse._
 import io.circe.Json.{False, Null, True}
 import io.circe.validator.JsonError.{
   keyNotFound,
@@ -39,7 +41,7 @@ abstract class ValidatorF[F[_]](
     implicit
     FT: FT[F, Errors],
     L: AL[F, Env],
-    M: Monad[F]
+    M: Monad[F],
 ) {
 
   // {{{ Array -----------------------------------------------------------------
@@ -65,12 +67,23 @@ abstract class ValidatorF[F[_]](
       M.whenA(validators.size > l)(tooFewElements(l))
 
     val arrayValidator0: Vector[Json] => F[Unit] =
-      validators.zipWithIndex.zip(_) traverse_ {
-        case ((validator, index), json) =>
+      validators.zip(_).traverseWithIndexM{
+        case ((validator, json), index) =>
           L.local(Env.index(index, json))(validator)
-      }
+      }.void
 
     withArray(arr => sizeCheck(arr.size) *> arrayValidator0(arr))
+  }
+
+  /** @group array */
+  def forall(validator: F[Unit]): F[Unit] = {
+    val arrayValidator0: Vector[Json] => F[Unit] = arr =>
+      Vector.fill(arr.length)(validator).zip(arr).traverseWithIndexM{
+        case ((validator, json), index) =>
+          L.local(Env.index(index, json))(validator)
+      }.void
+
+    withArray(arr => arrayValidator0(arr))
   }
 
   // }}} Array -----------------------------------------------------------------
@@ -275,8 +288,8 @@ abstract class ValidatorF[F[_]](
 
   def liftPredicate[A](
       predicate: A => Boolean,
-      mkMsg: A => String
-  ): A => F[Unit] = a => M.unlessA(predicate(a))(violation(mkMsg(a)))
+      msg: A => String
+  ): A => F[Unit] = a => M.unlessA(predicate(a))(violation(msg(a)))
 
   // }}} Lifting ---------------------------------------------------------------
 }
