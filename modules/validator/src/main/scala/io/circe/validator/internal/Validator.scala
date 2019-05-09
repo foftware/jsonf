@@ -12,7 +12,7 @@ import io.circe.Json.{False, Null, True}
 import io.circe.validator.JsonError.{
   keyNotFound,
   mismatch,
-  predicateViolation,
+  violation,
   numberCoercion
 }
 import io.circe.validator.{Env, Errors}
@@ -57,8 +57,8 @@ abstract class ValidatorF[F[_]](
       validators: Vector[F[Unit]]
   ): F[Unit] = {
     val tooFewElements: Int => F[Unit] = l =>
-      predicateViolation(
-        s"Array has less elements (${l}) than expected (${validators.length})"
+      violation(
+        s"Array has less elements ${l} than expected ${validators.length}"
       )
 
     val sizeCheck: Int => F[Unit] = l =>
@@ -77,16 +77,17 @@ abstract class ValidatorF[F[_]](
   // {{{ Number ----------------------------------------------------------------
 
   /** @group number */
-  private[internal] def numViolationMsg(n: JsonNumber): String =
-    s"Number value $n does not satisfy the given predicate."
+  private[internal] def numViolationMsg[A](n: A): String =
+    s"Numeric value $n does not satisfy the given predicate."
 
   /** @group number */
-  def eqNumberValidator(num: JsonNumber): F[Unit] =
+  def eqNumberValidator(expected: JsonNumber): F[Unit] =
     withNumber(
-      num0 =>
-        M.unlessA(num === num0) {
-          lazy val reason = s"Number: $num does not match expected $num0"
-          predicateViolation(reason)
+      actual =>
+        M.unlessA(actual === expected) {
+          lazy val reason =
+            s"Number $actual does not equal expected $expected"
+          violation(reason)
         }
     )
 
@@ -97,45 +98,59 @@ abstract class ValidatorF[F[_]](
     )
 
   /** @group number */
-  def number(predicate: JsonNumber => Boolean): F[Unit] =
-    withNumber(liftPredicate(predicate, numViolationMsg))
+  def number(
+      predicate: JsonNumber => Boolean,
+      msg: JsonNumber => String = numViolationMsg
+  ): F[Unit] = withNumber(liftPredicate(predicate, msg))
 
   /** @group number */
-  def int(predicate: Int => Boolean): F[Unit] = {
+  def int(
+      predicate: Int => Boolean,
+      msg: Int => String = numViolationMsg
+  ): F[Unit] = {
     def liftOption(optionNum: Option[Int], num: JsonNumber): F[Unit] =
       optionNum.fold(
         numberCoercion("Int", num)
-      )(liftPredicate(predicate, Function.const(numViolationMsg(num))))
+      )(liftPredicate(predicate, msg))
 
     withNumber(num => liftOption(num.toInt, num))
   }
 
   /** @group number */
-  def bigInt(predicate: BigInt => Boolean): F[Unit] = {
+  def bigInt(
+      predicate: BigInt => Boolean,
+      msg: BigInt => String = numViolationMsg
+  ): F[Unit] = {
     def liftOption(optionNum: Option[BigInt], num: JsonNumber): F[Unit] =
       optionNum.fold(
         numberCoercion("BigInt", num)
-      )(liftPredicate(predicate, Function.const(numViolationMsg(num))))
+      )(liftPredicate(predicate, msg))
 
     withNumber(num => liftOption(num.toBigInt, num))
   }
 
   /** @group number */
-  def bigDecimal(predicate: BigDecimal => Boolean): F[Unit] = {
+  def bigDecimal(
+      predicate: BigDecimal => Boolean,
+      msg: BigDecimal => String = numViolationMsg
+  ): F[Unit] = {
     def liftOption(optionNum: Option[BigDecimal], num: JsonNumber): F[Unit] =
       optionNum.fold(
         numberCoercion("BigDecimal", num)
-      )(liftPredicate(predicate, Function.const(numViolationMsg(num))))
+      )(liftPredicate(predicate, msg))
 
     withNumber(num => liftOption(num.toBigDecimal, num))
   }
 
   /** @group number */
-  def long(predicate: Long => Boolean): F[Unit] = {
+  def long(
+      predicate: Long => Boolean,
+      msg: Long => String = numViolationMsg
+  ): F[Unit] = {
     def liftOption(optionNum: Option[Long], num: JsonNumber): F[Unit] =
       optionNum.fold(
         numberCoercion("Long", num)
-      )(liftPredicate(predicate, Function.const(numViolationMsg(num))))
+      )(liftPredicate(predicate, msg))
 
     withNumber(num => liftOption(num.toLong, num))
   }
@@ -144,10 +159,13 @@ abstract class ValidatorF[F[_]](
     *
     * Note: Won't fail on number coercion, but can get truncated in the process.
     */
-  def double(predicate: Double => Boolean): F[Unit] = {
+  def double(
+      predicate: Double => Boolean,
+      msg: Double => String = numViolationMsg
+  ): F[Unit] = {
     withNumber(
       num =>
-        liftPredicate(predicate, Function.const(numViolationMsg(num)))(
+        liftPredicate(predicate, msg)(
           num.toDouble
         )
     )
@@ -157,12 +175,12 @@ abstract class ValidatorF[F[_]](
   // {{{ String ----------------------------------------------------------------
 
   /** @group string */
-  def eqStringValidator(s: String): F[Unit] =
+  def eqStringValidator(expected: String): F[Unit] =
     withString(
-      s0 =>
-        M.unlessA(s === s0) {
-          val reason = s"String: $s does not match expected $s0"
-          predicateViolation(reason)
+      actual =>
+        M.unlessA(actual === expected) {
+          val reason = s"String $actual does not match expected $expected"
+          violation(reason)
         }
     )
 
@@ -173,20 +191,20 @@ abstract class ValidatorF[F[_]](
     )
 
   /** @group string */
-  def string(predicate: String => Boolean): F[Unit] = {
-    def mkErrorMsg(s: String): String =
-      s"String value $s does not satisfy the given predicate."
-
-    withString(liftPredicate(predicate, mkErrorMsg))
-  }
+  def string(
+      predicate: String => Boolean,
+      msg: String => String = s =>
+        s"String value $s does not satisfy the given predicate."
+  ): F[Unit] = withString(liftPredicate(predicate, msg))
 
   /** @group string */
   def regex(regex: Regex): F[Unit] = {
     withString(
       s =>
         M.unlessA(regex.unapplySeq(s).isDefined) {
-          val reason = s"String: $s does not match regular expression $regex"
-          predicateViolation(reason)
+          val reason =
+            s"String value $s does not match regular expression $regex"
+          violation(reason)
         }
     )
   }
@@ -212,7 +230,7 @@ abstract class ValidatorF[F[_]](
       objValidator: Vector[(String, F[Unit])]
   ): F[Unit] = {
     val objectValidator0: JsonObject => F[Unit] = obj =>
-      objValidator.traverse_ {
+      objValidator traverse_ {
         case (key, validator) => atKeyValidator(key, validator)(obj)
       }
 
@@ -228,7 +246,8 @@ abstract class ValidatorF[F[_]](
   val pass: F[Unit] = M.unit
 
   /** group other */
-  val failed: F[Unit] = predicateViolation("Fail unconditionally")
+  def failed(msg: String = "Fail unconditionally"): F[Unit] =
+    violation(msg)
 
   /** group other */
   def trueValidator(): F[Unit] =
@@ -257,7 +276,7 @@ abstract class ValidatorF[F[_]](
   def liftPredicate[A](
       predicate: A => Boolean,
       mkMsg: A => String
-  ): A => F[Unit] = a => M.unlessA(predicate(a))(predicateViolation(mkMsg(a)))
+  ): A => F[Unit] = a => M.unlessA(predicate(a))(violation(mkMsg(a)))
 
   // }}} Lifting ---------------------------------------------------------------
 }

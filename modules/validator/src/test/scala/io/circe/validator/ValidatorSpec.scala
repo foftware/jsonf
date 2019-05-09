@@ -4,11 +4,7 @@ import cats.tests.CatsSuite
 import cats.data.Chain
 import io.circe.{Json, JsonNumber, JsonObject}
 
-import io.circe.validator.JsonError.{
-  PredicateViolation,
-  TypeMismatch,
-  KeyNotFound
-}
+import io.circe.validator.JsonError.{Violation, TypeMismatch, KeyNotFound}
 import io.circe.validator.PathStep.{Root, Index, Key}
 
 trait Runner {
@@ -29,9 +25,10 @@ class ValidatorSpec extends CatsSuite with Runner {
   }
 
   test("failed should always fail") {
-    val actual = runValidator(failed, Json.Null)
+    val msg    = "Unconditional validator fail"
+    val actual = runValidator(failed(msg), Json.Null)
     val expected =
-      Chain(ErrorAt(List(Root), PredicateViolation("Fail unconditionally")))
+      Chain(ErrorAt(List(Root), Violation(msg)))
 
     actual shouldBe expected
   }
@@ -90,7 +87,7 @@ class ValidatorSpec extends CatsSuite with Runner {
     val expected = Chain(
       ErrorAt(
         List(Root),
-        PredicateViolation(
+        Violation(
           "String value 4321 does not satisfy the given predicate."
         )
       )
@@ -113,7 +110,7 @@ class ValidatorSpec extends CatsSuite with Runner {
     val expected = Chain(
       ErrorAt(
         List(Root),
-        PredicateViolation("String: 1234 does not match expected 4321")
+        Violation("String 4321 does not match expected 1234")
       )
     )
 
@@ -134,8 +131,8 @@ class ValidatorSpec extends CatsSuite with Runner {
     val expected = Chain(
       ErrorAt(
         List(Root),
-        PredicateViolation(
-          """String: 1-2 does not match regular expression \d-\d-\d"""
+        Violation(
+          """String value 1-2 does not match regular expression \d-\d-\d"""
         )
       )
     )
@@ -157,8 +154,8 @@ class ValidatorSpec extends CatsSuite with Runner {
     val expected = Chain(
       ErrorAt(
         List(Root),
-        PredicateViolation(
-          "Number value 4321 does not satisfy the given predicate."
+        Violation(
+          "Numeric value 4321 does not satisfy the given predicate."
         )
       )
     )
@@ -182,7 +179,7 @@ class ValidatorSpec extends CatsSuite with Runner {
     val expected = Chain(
       ErrorAt(
         List(Root),
-        PredicateViolation("Number: 1234 does not match expected 4321")
+        Violation("Number 4321 does not equal expected 1234")
       )
     )
 
@@ -197,15 +194,9 @@ class ValidatorSpec extends CatsSuite with Runner {
   }
 
   test("int should fail if given Int predicate fails") {
-    val actual = runValidator(int(_ < 4320), Json.fromInt(4321))
-    val expected = Chain(
-      ErrorAt(
-        List(Root),
-        PredicateViolation(
-          "Number value 4321 does not satisfy the given predicate."
-        )
-      )
-    )
+    val msg: Int => String = actual => s"Int $actual is less or equal to 4320"
+    val actual             = runValidator(int(_ < 4320, msg), Json.fromInt(4321))
+    val expected           = Chain(ErrorAt(List(Root), Violation(msg(4321))))
 
     actual shouldBe expected
   }
@@ -222,8 +213,8 @@ class ValidatorSpec extends CatsSuite with Runner {
     val expected = Chain(
       ErrorAt(
         List(Root),
-        PredicateViolation(
-          "Number value 4321 does not satisfy the given predicate."
+        Violation(
+          "Numeric value 4321 does not satisfy the given predicate."
         )
       )
     )
@@ -252,8 +243,8 @@ class ValidatorSpec extends CatsSuite with Runner {
     val expected = Chain(
       ErrorAt(
         List(Root),
-        PredicateViolation(
-          "Number value 4321 does not satisfy the given predicate."
+        Violation(
+          "Numeric value 4321 does not satisfy the given predicate."
         )
       )
     )
@@ -269,12 +260,12 @@ class ValidatorSpec extends CatsSuite with Runner {
   }
 
   test("double should fail if given Double predicate fails") {
-    val actual = runValidator(long(_ < 4320.0), Json.fromDoubleOrNull(4321.0))
+    val actual = runValidator(double(_ < 4320.0), Json.fromDoubleOrNull(4321.1))
     val expected = Chain(
       ErrorAt(
         List(Root),
-        PredicateViolation(
-          "Number value 4321.0 does not satisfy the given predicate."
+        Violation(
+          "Numeric value 4321.1 does not satisfy the given predicate."
         )
       )
     )
@@ -287,8 +278,8 @@ class ValidatorSpec extends CatsSuite with Runner {
     val expected = Chain(
       ErrorAt(
         List(Root),
-        PredicateViolation(
-          "Number value 4321 does not satisfy the given predicate."
+        Violation(
+          "Numeric value 4321 does not satisfy the given predicate."
         )
       )
     )
@@ -321,7 +312,7 @@ class ValidatorSpec extends CatsSuite with Runner {
     val expected = Chain(
       ErrorAt(
         List(Root),
-        PredicateViolation("Array has less elements (0) than expected (1)")
+        Violation("Array has less elements 0 than expected 1")
       )
     )
 
