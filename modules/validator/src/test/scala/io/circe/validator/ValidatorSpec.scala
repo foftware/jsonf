@@ -319,6 +319,25 @@ class ValidatorSpec extends CatsSuite with Runner {
     actual shouldBe expected
   }
 
+  test("forall should succeed if all elements pass given validation") {
+    val validator = forall(trueValidator)
+    val validated = Json.arr(Json.True, Json.True)
+    val actual    = runValidator(validator, validated)
+    val expected = Chain()
+      // Chain(ErrorAt(List(Root, Index(1)), TypeMismatch("false", "true")))
+
+    actual shouldBe expected
+  }
+
+  test("forall should fail if any element does not pass given validation") {
+    val validator = forall(trueValidator)
+    val validated = Json.arr(Json.True, Json.True, Json.False, Json.True)
+    val actual    = runValidator(validator, validated)
+    val expected = Chain(ErrorAt(List(Root, Index(2)), TypeMismatch("true", "false")))
+
+    actual shouldBe expected
+  }
+
   test("objectValidator should succeed of all of its keys succeed") {
     val validator = objectValidator(
       Vector("a" -> trueValidator, "b" -> falseValidator)

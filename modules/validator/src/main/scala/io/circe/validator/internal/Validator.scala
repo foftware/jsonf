@@ -76,15 +76,16 @@ abstract class ValidatorF[F[_]](
   }
 
   /** @group array */
-  def forall(validator: F[Unit]): F[Unit] = {
-    val arrayValidator0: Vector[Json] => F[Unit] = arr =>
+  def forall(validator: F[Unit]): F[Unit] =
+    withArray(arr =>
       Vector.fill(arr.length)(validator).zip(arr).traverseWithIndexM{
         case ((validator, json), index) =>
           L.local(Env.index(index, json))(validator)
       }.void
+    )
 
-    withArray(arr => arrayValidator0(arr))
-  }
+  /** @group array */
+
 
   // }}} Array -----------------------------------------------------------------
   // {{{ Number ----------------------------------------------------------------
