@@ -1,7 +1,6 @@
 import Dependencies._
 
 ThisBuild / scalaVersion  := "2.12.8"
-ThisBuild / version       := "0.1.0-SNAPSHOT"
 ThisBuild / organization  := "org.foftware"
 ThisBuild / startYear     := Some(2019)
 ThisBuild / licenses      := Seq(("MIT", url("http://opensource.org/licenses/MIT")))
