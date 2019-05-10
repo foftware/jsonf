@@ -25,21 +25,23 @@ import io.circe.validator.{Env, Errors}
 import io.circe.{Json, JsonNumber, JsonObject}
 import scala.util.matching.Regex
 
+//
+//  @group array
+//  @group number
+//  @group string
+//  @group object
+//  @group other
+//  @group lifting
+//
+//  @groupdesc array "Array validators"
+//  @groupdesc number "Number validators"
+//  @groupdesc string "String validators"
+//  @groupdesc object "Object validators"
+//  @groupdesc other "Singleton and other validators"
+//  @groupdesc lifting "Utility functions for lifting into 'ValidatorF'"
+//
 /** Generic validator
   *
-  * @group array
-  * @group number
-  * @group string
-  * @group object
-  * @group other
-  * @group lifting
-  *
-  * @groupdesc array "Array validators"
-  * @groupdesc number "Number validators"
-  * @groupdesc string "String validators"
-  * @groupdesc object "Object validators"
-  * @groupdesc other "Singleton and other validators"
-  * @groupdesc lifting "Utility functions for lifting into 'ValidatorF'"
   */
 abstract class ValidatorF[F[_]](
     implicit

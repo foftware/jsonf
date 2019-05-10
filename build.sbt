@@ -1,9 +1,10 @@
 import Dependencies._
 
 ThisBuild / scalaVersion  := "2.12.8"
-ThisBuild / organization  := "org.foftware"
+ThisBuild / organization  := "com.github.foftware"
 ThisBuild / startYear     := Some(2019)
-ThisBuild / licenses      := Seq(("MIT", url("http://opensource.org/licenses/MIT")))
+ThisBuild / licenses      := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
+ThisBuild / description   := "JSON template"
 
 addCommandAlias("lint", ";scalafmtCheck;test:scalafmtCheck")
 addCommandAlias("fmt", ";scalafmt;test:scalafmt")
@@ -56,6 +57,41 @@ lazy val compilerFlags = Seq(
     "-Ywarn-value-discard"               // Warn when non-Unit expression results are unused.
   )
 
+lazy val publishSettings = Seq(
+	homepage := Some(url("https://github.com/foftware/jsont")),
+ 	licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
+ 	scmInfo := Some(ScmInfo(url("https://github.com/foftware/jsont"), "scm:git:git@github.com:foftware/jsont.git")),
+ 	autoAPIMappings := true,
+  publishMavenStyle := true,
+  publishArtifact in Test := false,
+  pomIncludeRepository := Function.const(false),
+ 	pomExtra := (
+  	<developers>
+      <developer>
+        <id>kidonm</id>
+        <name>Marek Kidoň</name>
+        <url>https://github.com/kidonm</url>
+      </developer>
+      <developer>
+        <id>fokot</id>
+        <name>František Kocun</name>
+        <url>https://github.com/fokot</url>
+      </developer>
+    </developers>
+	),
+	publishTo := {
+  	val bintray = "https://foftware.bintray.com/jsont"
+    if (isSnapshot.value)
+      Some("snapshots" at bintray + "/content/repositories/snapshots")
+    else
+      Some("releases" at bintray+ "/service/local/staging/deploy/maven2")
+    }
+)
+
+lazy val noPublishSettings = Seq(
+	skip in publish := true
+)
+
 lazy val commonSettings = Seq(
 	scalacOptions     := compilerFlags,
 	wartremoverErrors := Warts.all,
@@ -69,6 +105,7 @@ lazy val commonSettings = Seq(
 
 lazy val root = (project in file("."))
   .settings(commonSettings)
+	.settings(noPublishSettings)
   .settings(
     initialCommands in console :=
 			"""
@@ -79,12 +116,14 @@ lazy val root = (project in file("."))
 				|import io.circe.validator.literal._
 				|import io.circe.validator.internal._
 				""".stripMargin,
-		scalacOptions in (Compile, console) --= Seq("-Xfatal-warnings")
+		scalacOptions in (Compile, console) --= Seq("-Xfatal-warnings"),
+		scalacOptions in (Compile, doc) --= Seq("-Xfatal-warnings")
   ).dependsOn(literal, `scalatest-validator`, validator)
   .aggregate(literal, `scalatest-validator`, validator)
 
 lazy val literal = (project in file("./modules/literal"))
   .settings(commonSettings)
+	.settings(publishSettings)
   .settings(
     libraryDependencies ++= literalDependencies,
     name := "circe-validator-literal",
@@ -92,6 +131,7 @@ lazy val literal = (project in file("./modules/literal"))
 
 lazy val `scalatest-validator` = (project in file("./modules/scalatest-circe-validator/"))
   .settings(commonSettings)
+	.settings(publishSettings)
   .settings(
     libraryDependencies ++= scalatestValidatorDependencies,
     name := "scalatest-circe-validator",
@@ -99,6 +139,7 @@ lazy val `scalatest-validator` = (project in file("./modules/scalatest-circe-val
 
 lazy val validator = (project in file("./modules/validator"))
   .settings(commonSettings)
+	.settings(publishSettings)
   .settings(
     libraryDependencies ++= validatorDependencies,
     name := "circe-validator",
