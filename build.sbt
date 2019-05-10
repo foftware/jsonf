@@ -62,10 +62,10 @@ lazy val commonSettings = Seq(
 	wartremoverErrors := Warts.all,
 	headerMappings    := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
 	headerLicense     := Some(HeaderLicense.Custom(
-  """|Copyright (c) 2019 Marek Kidoň and František Kocun
-     |This software is licensed under the MIT License (MIT).
-     |For more information see LICENSE or https://opensource.org/licenses/MIT
-     |""".stripMargin))
+    """|Copyright (c) 2019 Marek Kidoň and František Kocun
+       |This software is licensed under the MIT License (MIT).
+       |For more information see LICENSE or https://opensource.org/licenses/MIT
+       """.stripMargin))
 )
 
 lazy val root = (project in file("."))
