@@ -1,7 +1,5 @@
 package org.scalatest
 
-import io.circe.Json
-import jsont.trueValidator
 import io.circe.literal._
 
 class JsonValidatorMatchersSpec
@@ -10,29 +8,6 @@ class JsonValidatorMatchersSpec
     with WordSpecLike {
 
   "JsonValidatorMatchers" should {
-    "succeed" when {
-      "validation passes" in {
-        val actual = passValidation(trueValidator)(Json.True)
-
-        println(actual)
-
-        actual.matches shouldBe true
-      }
-    }
-
-    "fail" when {
-      "validation did not pass" in {
-        val actual = passValidation(trueValidator)(Json.False)
-
-        println(actual)
-
-        actual.matches shouldBe false
-      }
-    }
-  }
-
-  "matchJson" should {
-
     "succeed" in {
       json"""{ "a": true }""" should matchJson"""{ "a": true }"""
       json"""{ "a": false }""" should matchJson"""{ "a": false }"""
