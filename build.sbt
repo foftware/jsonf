@@ -65,6 +65,7 @@ lazy val publishSettings = Seq(
   publishMavenStyle := true,
   publishArtifact in Test := false,
   pomIncludeRepository := Function.const(false),
+	useGpg := true,
  	pomExtra := (
   	<developers>
       <developer>
@@ -93,10 +94,10 @@ lazy val noPublishSettings = Seq(
 )
 
 lazy val commonSettings = Seq(
-	scalacOptions     := compilerFlags,
+	scalacOptions := compilerFlags,
 	wartremoverErrors := Warts.all,
-	headerMappings    := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
-	headerLicense     := Some(HeaderLicense.Custom(
+	headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
+	headerLicense := Some(HeaderLicense.Custom(
     """|Copyright (c) 2019 Marek Kidoň and František Kocun
        |This software is licensed under the MIT License (MIT).
        |For more information see LICENSE or https://opensource.org/licenses/MIT
