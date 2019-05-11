@@ -1,12 +1,7 @@
 package jsont.literal
 
 import io.circe.literal._
-import jsont.{
-  int,
-  string,
-  regex => regularExp,
-  run => runValidator
-}
+import jsont.{int, string, regex => regularExp, run => runValidator}
 
 import org.scalatest.{FunSuite, Matchers}
 

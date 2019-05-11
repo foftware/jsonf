@@ -15,12 +15,7 @@ import cats.syntax.flatMap._
 import cats.syntax.foldable._
 import cats.syntax.traverse._
 import io.circe.Json.{False, Null, True}
-import jsont.JsonError.{
-  keyNotFound,
-  mismatch,
-  violation,
-  numberCoercion
-}
+import jsont.JsonError.{keyNotFound, mismatch, violation, numberCoercion}
 import jsont.{Env, Errors}
 import io.circe.{Json, JsonNumber, JsonObject}
 import scala.util.matching.Regex

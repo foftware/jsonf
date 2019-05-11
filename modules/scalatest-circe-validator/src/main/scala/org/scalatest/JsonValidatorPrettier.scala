@@ -10,12 +10,7 @@ import io.circe.syntax._
 import jsont.{ErrorAt, Errors, PathStep}
 import jsont.PathStep.{Index, Key, Root}
 import jsont.JsonError
-import jsont.JsonError.{
-  KeyNotFound,
-  NumberCoercion,
-  TypeMismatch,
-  Violation
-}
+import jsont.JsonError.{KeyNotFound, NumberCoercion, TypeMismatch, Violation}
 import org.scalactic.Prettifier
 
 object JsonValidatorPrettifier {
