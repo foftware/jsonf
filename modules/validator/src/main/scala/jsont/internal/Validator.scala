@@ -2,7 +2,7 @@
 // This software is licensed under the MIT License (MIT).
 // For more information see LICENSE or https://opensource.org/licenses/MIT
 
-package io.circe.validator.internal
+package jsont.internal
 
 import cats.Monad
 import cats.instances.string._
@@ -15,13 +15,13 @@ import cats.syntax.flatMap._
 import cats.syntax.foldable._
 import cats.syntax.traverse._
 import io.circe.Json.{False, Null, True}
-import io.circe.validator.JsonError.{
+import jsont.JsonError.{
   keyNotFound,
   mismatch,
   violation,
   numberCoercion
 }
-import io.circe.validator.{Env, Errors}
+import jsont.{Env, Errors}
 import io.circe.{Json, JsonNumber, JsonObject}
 import scala.util.matching.Regex
 

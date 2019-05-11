@@ -5,7 +5,7 @@
 package org.scalatest
 
 import io.circe.Json
-import io.circe.validator.{Validator, run => runValidator}
+import jsont.{Validator, run => runValidator}
 import org.scalatest.JsonValidatorPrettifier.jsonValidatorPrettifier
 import org.scalatest.matchers.{MatchResult, Matcher}
 import scala.language.experimental.macros

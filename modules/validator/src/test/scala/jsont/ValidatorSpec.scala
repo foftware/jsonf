@@ -1,11 +1,11 @@
-package io.circe.validator
+package jsont
 
 import cats.tests.CatsSuite
 import cats.data.Chain
 import io.circe.{Json, JsonNumber, JsonObject}
-
-import io.circe.validator.JsonError.{Violation, TypeMismatch, KeyNotFound}
-import io.circe.validator.PathStep.{Root, Index, Key}
+import jsont.JsonError.{KeyNotFound, TypeMismatch, Violation}
+import jsont.PathStep.{Index, Key, Root}
+import jsont.PathStep.Root
 
 trait Runner {
   def runValidator = run _

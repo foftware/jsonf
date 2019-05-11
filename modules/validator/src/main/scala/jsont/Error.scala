@@ -2,7 +2,7 @@
 // This software is licensed under the MIT License (MIT).
 // For more information see LICENSE or https://opensource.org/licenses/MIT
 
-package io.circe.validator
+package jsont
 
 import cats.kernel.Eq
 import cats.{Monad, Show}

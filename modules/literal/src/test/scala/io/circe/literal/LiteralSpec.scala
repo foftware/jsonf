@@ -1,7 +1,7 @@
-package io.circe.validator.literal
+package jsont.literal
 
 import io.circe.literal._
-import io.circe.validator.{
+import jsont.{
   int,
   string,
   regex => regularExp,

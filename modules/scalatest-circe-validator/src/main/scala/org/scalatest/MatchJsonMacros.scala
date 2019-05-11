@@ -5,7 +5,7 @@
 package org.scalatest
 
 import io.circe.Json
-import io.circe.validator.literal.ValidatorMacros
+import jsont.literal.ValidatorMacros
 import org.scalatest.matchers.Matcher
 import scala.reflect.macros.blackbox
 

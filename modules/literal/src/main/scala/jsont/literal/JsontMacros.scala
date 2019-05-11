@@ -2,7 +2,7 @@
 // This software is licensed under the MIT License (MIT).
 // For more information see LICENSE or https://opensource.org/licenses/MIT
 
-package io.circe.validator.literal
+package jsont.literal
 
 import scala.reflect.macros.blackbox
 

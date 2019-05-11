@@ -1,7 +1,7 @@
 package org.scalatest
 
 import io.circe.Json
-import io.circe.validator.trueValidator
+import jsont.trueValidator
 import io.circe.literal._
 
 class JsonValidatorMatchersSpec

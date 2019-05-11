@@ -2,10 +2,10 @@
 // This software is licensed under the MIT License (MIT).
 // For more information see LICENSE or https://opensource.org/licenses/MIT
 
-package io.circe.validator.literal
+package jsont.literal
 
 import org.typelevel.jawn.{SimpleFacade, Parser}
-import io.circe.validator.Validator
+import jsont.Validator
 import java.io.{PrintWriter, StringWriter}
 import java.util.UUID
 import scala.reflect.macros.blackbox
@@ -24,30 +24,30 @@ trait ValidatorMacros {
 
   def mkValidatorTreeFacade(holes: Seq[Hole]): SimpleFacade[Tree] =
     new SimpleFacade[Tree] {
-      def jfalse(): Tree = q"_root_.io.circe.validator.falseValidator"
-      def jtrue(): Tree  = q"_root_.io.circe.validator.trueValidator"
-      def jnull(): Tree  = q"_root_.io.circe.validator.nullValidator"
+      def jfalse(): Tree = q"_root_.jsont.falseValidator"
+      def jtrue(): Tree  = q"_root_.jsont.trueValidator"
+      def jnull(): Tree  = q"_root_.jsont.nullValidator"
       def jnum(s: CharSequence, decIndex: Int, expIndex: Int): Tree = {
         val number = if (decIndex < 0 && expIndex < 0) {
           q"io.circe.JsonNumber.fromIntegralStringUnsafe(${s.toString})"
         } else {
           q"io.circe.JsonNumber.fromDecimalStringUnsafe(${s.toString})"
         }
-        q"_root_.io.circe.validator.eqNumberValidator($number)"
+        q"_root_.jsont.eqNumberValidator($number)"
       }
       def jstring(s: CharSequence): Tree = {
         val string = s.toString
         holes
           .find(_.hole == string)
           .fold(
-            q"_root_.io.circe.validator.eqStringValidator($string)"
+            q"_root_.jsont.eqStringValidator($string)"
           )(_.value)
       }
       def jarray(vs: List[Tree]): Tree =
-        q"_root_.io.circe.validator.arrayValidator(${vs.toVector})"
+        q"_root_.jsont.arrayValidator(${vs.toVector})"
 
       def jobject(vs: Map[String, Tree]): Tree =
-        q"_root_.io.circe.validator.objectValidator(${vs.toVector})"
+        q"_root_.jsont.objectValidator(${vs.toVector})"
     }
 
   final def parse(json: String, holes: Seq[Hole]): Either[Throwable, Tree] = {

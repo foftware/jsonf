@@ -7,10 +7,10 @@ package org.scalatest
 import cats.implicits.catsKernelStdOrderForList
 import io.circe.{Encoder, Json}
 import io.circe.syntax._
-import io.circe.validator.{ErrorAt, Errors, PathStep}
-import io.circe.validator.PathStep.{Index, Key, Root}
-import io.circe.validator.JsonError
-import io.circe.validator.JsonError.{
+import jsont.{ErrorAt, Errors, PathStep}
+import jsont.PathStep.{Index, Key, Root}
+import jsont.JsonError
+import jsont.JsonError.{
   KeyNotFound,
   NumberCoercion,
   TypeMismatch,
