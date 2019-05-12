@@ -23,8 +23,7 @@ object Dependencies {
     cats,
     catsMtl,
     circeCore,
-    compilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
-    scalaParserCombinators
+    compilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0")
   )
 
   lazy val validatorTestDependencies = Seq(

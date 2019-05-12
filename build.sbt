@@ -57,6 +57,14 @@ lazy val compilerFlags = Seq(
     "-Ywarn-value-discard"               // Warn when non-Unit expression results are unused.
   )
 
+lazy val credentialSettings = Seq(
+  // For Travis CI - see http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
+	credentials ++= (for {
+    username <- Option(System.getenv().get("SONATYPE_USERNAME"))
+    password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
+  } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq
+)
+
 lazy val publishSettings = Seq(
 	homepage := Some(url("https://github.com/foftware/jsont")),
  	licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
@@ -81,13 +89,14 @@ lazy val publishSettings = Seq(
     </developers>
 	),
 	publishTo := {
-  	val bintray = "https://foftware.bintray.com/jsont"
+  	val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)
-      Some("snapshots" at bintray + "/content/repositories/snapshots")
+      Some("snapshots" at nexus + "/content/repositories/snapshots")
     else
-      Some("releases" at bintray+ "/service/local/staging/deploy/maven2")
-    }
-)
+      Some("releases" at nexus + "/service/local/staging/deploy/maven2")
+  },
+	releasePublishArtifactsAction := PgpKeys.publishSigned.value
+) ++ credentialSettings
 
 lazy val noPublishSettings = Seq(
 	skip in publish := true
@@ -119,29 +128,29 @@ lazy val root = (project in file("."))
 				""".stripMargin,
 		scalacOptions in (Compile, console) --= Seq("-Xfatal-warnings"),
 		scalacOptions in (Compile, doc) --= Seq("-Xfatal-warnings")
-  ).dependsOn(literal, `scalatest-validator`, validator)
-  .aggregate(literal, `scalatest-validator`, validator)
+  ).dependsOn(core, literal, `jsont-scalatest`)
+  .aggregate(core, literal, `jsont-scalatest`)
 
 lazy val literal = (project in file("./modules/literal"))
   .settings(commonSettings)
 	.settings(publishSettings)
   .settings(
     libraryDependencies ++= literalDependencies,
-    name := "circe-validator-literal",
-  ).dependsOn(validator)
+    name := "jsont-literal",
+  ).dependsOn(core)
 
-lazy val `scalatest-validator` = (project in file("./modules/scalatest-circe-validator/"))
+lazy val `jsont-scalatest` = (project in file("./modules/jsont-scalatest/"))
   .settings(commonSettings)
 	.settings(publishSettings)
   .settings(
     libraryDependencies ++= scalatestValidatorDependencies,
-    name := "scalatest-circe-validator",
-  ).dependsOn(literal, validator)
+    name := "jsont-scalatest",
+  ).dependsOn(core, literal)
 
-lazy val validator = (project in file("./modules/validator"))
+lazy val core = (project in file("./modules/core"))
   .settings(commonSettings)
 	.settings(publishSettings)
   .settings(
     libraryDependencies ++= validatorDependencies,
-    name := "circe-validator",
+    name := "jsont-core",
   )
