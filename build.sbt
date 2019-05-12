@@ -115,7 +115,8 @@ lazy val commonSettings = Seq(
 
 lazy val root = (project in file("."))
   .settings(commonSettings)
-	.settings(noPublishSettings)
+	.settings(publishSettings) // To publish all aggregated projects
+	.settings(noPublishSettings) // Exclude root module itself from being published
   .settings(
     initialCommands in console :=
 			"""
