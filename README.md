@@ -20,18 +20,18 @@ val validator = jsont"""{
   "a": ${int(_ > 0)},
   "b": ${string(_.length % 5 == 0)},
   "c": [
-		${string(_.toUpperCase == "ABCD")},
-  	${regex("""\d\d\d\d-\d\d-\d\d""".r)}
-	]
+    ${string(_.toUpperCase == "ABCD")},
+    ${regex("""\d\d\d\d-\d\d-\d\d""".r)}
+  ]
 }"""
 
 val validated = json"""{
   "a": 1,
   "b": "55555",
   "c": [
-		"abcd",
-		"2019-12-12"
-	]
+    "abcd",
+    "2019-12-12"
+  ]
 }"""
 
 run(validator, validated)
