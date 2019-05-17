@@ -18,6 +18,9 @@ import io.circe.Json.{False, Null, True}
 import jsont.JsonError.{keyNotFound, mismatch, violation, numberCoercion}
 import jsont.{Env, Errors}
 import io.circe.{Json, JsonNumber, JsonObject}
+import io.circe.{Decoder, Json, JsonNumber, JsonObject}
+
+import scala.reflect.ClassTag
 import scala.util.matching.Regex
 
 //
@@ -267,6 +270,33 @@ abstract class ValidatorF[F[_]](
 
   // }}} Object ----------------------------------------------------------------
   // {{{ Other -----------------------------------------------------------------
+
+  private[internal] def className[A: ClassTag]: String =
+    implicitly[ClassTag[A]].runtimeClass.getName
+
+  private[internal] def asViolationMsg[A](n: A): String =
+    s"Value $n does not satisfy the given predicate."
+
+  /** @group other */
+  def as[A: Decoder: ClassTag](
+      predicate: A => Boolean = Function.const(true) _,
+      msg: A => String = asViolationMsg[A] _
+  ): F[Unit] = {
+    val as0: Json => F[Unit] = json =>
+      json
+        .as[A]
+        .fold(
+          _ => mismatch(className[A], json),
+          liftPredicate(predicate, msg)
+        )
+
+    withJson(as0)
+  }
+
+  /** @group other */
+  def withJson(
+      f: Json => F[Unit]
+  ): F[Unit] = L.reader(_.json) >>= f
 
   /** group other */
   val pass: F[Unit] = M.unit

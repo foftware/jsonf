@@ -11,32 +11,39 @@ object Version {
 
 object Dependencies {
   lazy val cats = "org.typelevel" %% "cats-core" % Version.cats
-  lazy val catsTestKit = "org.typelevel" %% "cats-testkit"  % Version.cats
   lazy val catsMtl = "org.typelevel" %% "cats-mtl-core" % Version.catsMtl
+  lazy val catsTestKit = "org.typelevel" %% "cats-testkit"  % Version.cats
   lazy val circeCore = "io.circe" %% "circe-core" % Version.circe
+  lazy val circeGeneric = "io.circe" %% "circe-generic" % Version.circe
   lazy val circeLiteral = "io.circe" %% "circe-literal" % Version.circe
-  lazy val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest
-  lazy val scalaParserCombinators = "org.scala-lang.modules" %% "scala-parser-combinators" % Version.scalaParserCombinators
   lazy val jawnParser = "org.typelevel" %% "jawn-parser" % Version.jawn
+  lazy val scalaParserCombinators = "org.scala-lang.modules" %% "scala-parser-combinators" % Version.scalaParserCombinators
+  lazy val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest
 
-  lazy val validatorCompileDependencies = Seq(
-    cats,
-    catsMtl,
-    circeCore,
-    compilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0")
-  )
 
-  lazy val validatorTestDependencies = Seq(
-    catsTestKit,
-    scalaTest
-  ) map (_ % Test)
+  lazy val validatorDependencies = {
+    lazy val compile = Seq(
+      cats,
+      catsMtl,
+      circeCore,
+      compilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
+    )
+    lazy val test = Seq(catsTestKit, circeGeneric, scalaTest) map (_ % Test)
 
-  lazy val validatorDependencies = validatorCompileDependencies ++ validatorTestDependencies
+    compile ++ test
+  }
 
-  lazy val literalCompileDependencies = Seq(jawnParser)
-  lazy val literalTestDependencies = Seq(circeLiteral, scalaTest) map (_ % Test)
+  lazy val literalDependencies = {
+    lazy val compile = Seq(jawnParser)
+    lazy val test = Seq(circeLiteral, scalaTest) map (_ % Test)
 
-  lazy val literalDependencies = literalCompileDependencies ++ literalTestDependencies
+    compile ++ test
+  }
 
-  lazy val scalatestValidatorDependencies = Seq(scalaTest, circeLiteral % Test)
+  lazy val scalatestValidatorDependencies = {
+    lazy val compile = Seq(scalaTest)
+    lazy val test = Seq(circeLiteral, circeGeneric) map (_ % Test)
+
+    compile ++ test
+  }
 }

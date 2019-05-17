@@ -6,6 +6,18 @@ import io.circe.{Json, JsonNumber, JsonObject}
 import jsont.JsonError.{KeyNotFound, TypeMismatch, Violation}
 import jsont.PathStep.{Index, Key, Root}
 import jsont.PathStep.Root
+import io.circe.{Decoder, Json, JsonNumber, JsonObject}
+import io.circe.generic.semiauto.deriveDecoder
+import org.scalatest.Assertion
+
+object UserFixture {
+  final case class User(name: String, age: Int)
+  implicit val userDecoder: Decoder[User] = deriveDecoder
+}
+
+trait Fixtures {
+  def userFixture(f: UserFixture.type => Assertion): Assertion = f(UserFixture)
+}
 
 trait Runner {
   def runValidator = run _
@@ -15,7 +27,7 @@ object Regex {
   def regularExp = regex _
 }
 
-class ValidatorSpec extends CatsSuite with Runner {
+class ValidatorSpec extends CatsSuite with Fixtures with Runner {
 
   test("pass should always succeed") {
     val actual   = runValidator(pass, Json.Null)
@@ -388,5 +400,61 @@ class ValidatorSpec extends CatsSuite with Runner {
       Chain(ErrorAt(List(Root), KeyNotFound("a", JsonObject.empty)))
 
     actual shouldBe expected
+  }
+
+  test("as should succeed if given Json decodes and validates") {
+    userFixture { fixture =>
+      import fixture._
+
+      val validator = as[User]()
+      val validated = Json.obj(
+        "name" -> Json.fromString("Boris"),
+        "age"  -> Json.fromString("41")
+      )
+      val actual = runValidator(validator, validated)
+
+      actual shouldBe Chain()
+    }
+  }
+
+  test("as should fail if given Json does not decode") {
+    userFixture { fixture =>
+      import fixture._
+
+      val validator = as[User]()
+      val validated = Json.Null
+      val actual    = runValidator(validator, validated)
+      val expected = Chain(
+        ErrorAt(
+          List(Root),
+          TypeMismatch(s"jsont.UserFixture$$User", "null")
+        )
+      )
+
+      actual shouldBe expected
+    }
+  }
+
+  test("as should fail if given Json decodes but predicate fails") {
+    userFixture { fixture =>
+      import fixture._
+
+      val validator = as[User](_.age == 99)
+      val validated = Json.obj(
+        "name" -> Json.fromString("Boris"),
+        "age"  -> Json.fromString("41")
+      )
+      val actual = runValidator(validator, validated)
+      val expected = Chain(
+        ErrorAt(
+          List(Root),
+          Violation(
+            "Value User(Boris,41) does not satisfy the given predicate."
+          )
+        )
+      )
+
+      actual shouldBe expected
+    }
   }
 }
