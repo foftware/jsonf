@@ -7,4 +7,9 @@ project/plugins/project/
 .history
 .cache
 .lib/
+
+# Editors
+.bloop
+.project/.bloop
+.metals
 .idea
