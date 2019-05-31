@@ -118,6 +118,7 @@ lazy val root = (project in file("."))
 	.settings(publishSettings) // To publish all aggregated projects
 	.settings(noPublishSettings) // Exclude root module itself from being published
   .settings(
+    libraryDependencies += Dependencies.circeLiteral,
     initialCommands in console :=
 			"""
 				|import io.circe._
