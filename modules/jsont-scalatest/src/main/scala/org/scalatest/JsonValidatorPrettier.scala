@@ -4,10 +4,9 @@
 
 package org.scalatest
 
-import cats.implicits.catsKernelStdOrderForList
 import io.circe.{Encoder, Json}
 import io.circe.syntax._
-import jsont.{ErrorAt, Errors, PathStep}
+import jsont.{ErrorAt, PathStep}
 import jsont.PathStep.{Index, Key, Root}
 import jsont.JsonError
 import jsont.JsonError.{KeyNotFound, NumberCoercion, TypeMismatch, Violation}
@@ -54,13 +53,15 @@ object JsonValidatorPrettifier {
   val jsonValidatorPrettifier: Prettifier = new Prettifier {
     final def apply(o: Any): String = {
       // Ugly but that's how Prettifier works...
-      val errors = o.asInstanceOf[Errors]
-      errors
-        .groupBy(_.at)
-        .mapValues(_.asJson)
-        .values
-        .asJson
-        .toString
+      // TODO: or get rid of entirely
+      // val errors = o.asInstanceOf[Errors]
+      // errors
+      //   .groupBy(_.at)
+      //   .mapValues(_.asJson)
+      //   .values
+      //   .asJson
+      //   .toString
+      ""
     }
   }
 }
