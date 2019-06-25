@@ -2,15 +2,16 @@
 [![codecov](https://codecov.io/gh/foftware/jsont/branch/master/graph/badge.svg)](https://codecov.io/gh/foftware/jsont)
 [![Gitter chat](https://badges.gitter.im/fun-software/gitter.png)](https://gitter.im/fun-software/jsont)
 
-# Jsont
+Function-based Json templating language
 
 ## Overview
 
-Jsont is a library that provides function-based Json templating language.
+`jsont` is a combinator based library for building Json validators.
 
 ## Example
 
-To describe your Json you can use either the `jsont` string interpolator:
+Most convenient way to describe your Json is to use one of the supplied
+string interpolators. You can use either the `jsont`:
 
 ```
 import jsont.run
@@ -38,7 +39,7 @@ run(validator, validated)
 // Chain()
 ```
 
-Or when used in tests, use `scalatest` *Matcher* directly:
+Or when used in tests, use `scalatest`'s *Matcher* directly:
 
 ```
 jsont"""{
@@ -47,21 +48,23 @@ jsont"""{
   "c": [
     ${string(_.toUpperCase == "ABCD")},
     ${regex("""\d\d\d\d-\d\d-\d\d""".r)}
-	]
+  ]
 }""" should matchJson """{
   "a": 1,
   "b": "55555",
   "c": [
-		"abcd",
-		"2019-12-12"
-	]
+    "abcd",
+    "2019-12-12"
+  ]
 }"""
 ```
 
 ## Getting started
 
-TODO: libraryDependencies
+Add the following to your `build.sbt`:
 
-## Documentation
-
-TODO: javadoc.io ?
+```
+libraryDependencies += "com.github.foftware" % "jsont-core_2.12" % "0.1.1"
+libraryDependencies += "com.github.foftware" % "jsont-literal_2.12" % "0.1.1"
+libraryDependencies += "com.github.foftware" % "jsont-scalatest_2.12" % "0.1.1"
+```
