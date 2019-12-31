@@ -1,5 +1,8 @@
 package org.scalatest
 
+
+import org.scalatest.wordspec.AnyWordSpecLike
+
 import io.circe.generic.semiauto.deriveDecoder
 import io.circe.literal._
 import io.circe.Decoder
@@ -7,9 +10,9 @@ import io.circe.Decoder
 import jsont.{as, int}
 
 class JsonValidatorMatchersSpec
-    extends Matchers
+    extends org.scalatest.matchers.should.Matchers
     with JsonValidatorMatchers
-    with WordSpecLike {
+    with AnyWordSpecLike {
 
   "JsonValidatorMatchers" should {
     "succeed" in {

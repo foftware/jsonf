@@ -8,7 +8,6 @@ import io.circe.Json
 import jsont.{Validator, run => runValidator}
 import org.scalatest.JsonValidatorPrettifier.jsonValidatorPrettifier
 import org.scalatest.matchers.{MatchResult, Matcher}
-import scala.language.experimental.macros
 
 trait JsonValidatorMatchers {
 

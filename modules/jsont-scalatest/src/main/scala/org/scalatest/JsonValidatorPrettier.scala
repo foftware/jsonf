@@ -57,6 +57,7 @@ object JsonValidatorPrettifier {
       val errors = o.asInstanceOf[Errors]
       errors
         .groupBy(_.at)
+        .view
         .mapValues(_.asJson)
         .values
         .asJson

@@ -3,9 +3,10 @@ package jsont.literal
 import io.circe.literal._
 import jsont.{int, string, regex => regularExp, run => runValidator}
 
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.funsuite.AnyFunSuite
 
-class LiteralSpec extends FunSuite with Matchers {
+class LiteralSpec extends AnyFunSuite with Matchers {
   test("interpolator should validate true value") {
     runValidator(jsont"true", json"true").isEmpty shouldBe true
   }

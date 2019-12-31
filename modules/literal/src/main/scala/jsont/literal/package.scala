@@ -4,8 +4,6 @@
 
 package jsont
 
-import scala.language.experimental.macros
-
 package object literal {
 
   implicit class JsontInterpolator(sc: StringContext) {
