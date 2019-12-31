@@ -8,3 +8,6 @@ project/plugins/project/
 .cache
 .lib/
 .idea
+.bloop
+.metals
+project/.bloop
