@@ -7,7 +7,7 @@ package jsont.internal
 import cats.Monad
 import cats.instances.string._
 import cats.instances.vector._
-import cats.mtl.{ApplicativeLocal => AL, FunctorTell => FT}
+import cats.mtl.{ApplicativeLocal => AL, MonadChronicle => MC}
 import cats.syntax.apply._
 import cats.syntax.eq._
 import cats.syntax.functor._
@@ -43,7 +43,7 @@ import scala.util.matching.Regex
   */
 abstract class ValidatorF[F[_]](
     implicit
-    FT: FT[F, Errors],
+    MC: MC[F, Errors],
     L: AL[F, Env],
     M: Monad[F]
 ) {
